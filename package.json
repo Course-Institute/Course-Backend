@@ -1,0 +1,30 @@
+{
+  "name": "course-backend",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+  "start": "node dist/index.js",
+  "dev": "concurrently \"tsc --watch\" \"nodemon dist/index.js\""
+  },
+  "dependencies": {
+    "bcrypt": "^x.x.x",
+    "cors": "^x.x.x",
+    "dotenv": "^x.x.x",
+    "express": "^x.x.x",
+    "jsonwebtoken": "^x.x.x",
+    "mongoose": "^x.x.x"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^x.x.x",
+    "@types/cors": "^x.x.x",
+    "@types/express": "^x.x.x",
+    "@types/jsonwebtoken": "^x.x.x",
+    "@types/node": "^x.x.x",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
