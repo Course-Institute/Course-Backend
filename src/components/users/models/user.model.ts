@@ -1,5 +1,6 @@
 import mongoose, { Model, Schema } from "mongoose";
 
+
 interface IUser extends Document {
     name: string;
     email: string;
