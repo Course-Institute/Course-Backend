@@ -3,8 +3,8 @@ module.exports = {
     {
       name: 'node-backend',
       script: 'dist/app.js',
+      interpreter: 'node',
       instances: 1,
-      exec_mode: 'fork',
       env: {
         NODE_ENV: 'development',
         PORT: 5000
