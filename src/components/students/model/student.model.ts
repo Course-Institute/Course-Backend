@@ -81,11 +81,6 @@ const studentSchema = new Schema<IStudent>({
     timestamps: true
 });
 
-// Clear any existing model to avoid caching issues
-if (mongoose.models.students) {
-    delete mongoose.models.students;
-}
-
 const StudentModel: Model<IStudent> =
     mongoose.model<IStudent>(
         "students",

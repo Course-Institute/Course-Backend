@@ -62,4 +62,31 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
     }
 };
 
-export default { addStudentController };
+const getStudentProfileController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { registrationNo } = req.query;
+        
+        if (!registrationNo) {
+            return res.status(400).json({
+                status: false,
+                message: 'Registration number is required'
+            });
+        }
+        
+        const student = await studentService.getStudentProfile(registrationNo as string);
+        
+        return res.status(200).json({
+            status: true,
+            message: 'Student profile retrieved successfully',
+            data: student
+        });
+    } catch (error: any) {
+        return res.status(404).json({
+            status: false,
+            message: error.message || 'Failed to retrieve student profile',
+            error: error.message
+        });
+    }
+};
+
+export default { addStudentController, getStudentProfileController };

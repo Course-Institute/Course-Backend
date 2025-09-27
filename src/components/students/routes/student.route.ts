@@ -5,6 +5,9 @@ import { uploadStudentFiles, multerErrorHandler } from '../../auth/middleware/up
 
 const router = express.Router();
 
+// Public route to get student profile by registration number
+router.get('/profile', studentController.getStudentProfileController);
+
 // Protected routes (require authentication and admin role)
 router.post('/add-student', authenticateToken, authorizeAdmin, uploadStudentFiles.fields([
     { name: 'aadharCardFront', maxCount: 1 },

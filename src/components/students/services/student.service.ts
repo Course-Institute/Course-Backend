@@ -147,4 +147,19 @@ const addStudent = async ({
     }
 };
 
-export default { addStudent };
+const getStudentProfile = async (registrationNo: string) => {
+    try {
+        const student = await studentDal.getStudentProfileByRegistrationNo(registrationNo);
+        
+        if (!student) {
+            throw new Error('Student not found with the provided registration number');
+        }
+        
+        return student;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
+
+export default { addStudent, getStudentProfile };

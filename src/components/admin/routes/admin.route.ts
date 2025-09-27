@@ -1,5 +1,6 @@
 import express from 'express';
 import userController from '../../users/controller/user.controller.js';
+import adminController from '../controller/admin.controller.js';
 import { authenticateToken, authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -11,16 +12,11 @@ router.use(authorizeAdmin);
 // Admin profile routes
 router.get('/profile', userController.getAdminProfile);
 
-// Admin dashboard route (placeholder for future admin features)
-router.get('/dashboard', (req, res) => {
-    res.json({
-        status: true,
-        message: 'Admin dashboard accessed successfully',
-        data: {
-            admin: req.user,
-            timestamp: new Date().toISOString()
-        }
-    });
-});
+// Admin dashboard route
+router.get('/dashboard', adminController.getAdminDashboardController);
+
+// Student management routes
+router.get('/students', adminController.listAllStudentsController);
+router.get('/students/:registrationNo', adminController.getStudentDetailsController);
 
 export default router;
