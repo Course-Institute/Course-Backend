@@ -37,8 +37,8 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
         } = req.body;
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
         
-        const aadharFront = files?.aadharCardFront?.[0];
-        const aadharBack = files?.aadharCardBack?.[0];
+        const aadharFront = files?.adharCardFront?.[0];
+        const aadharBack = files?.adharCardBack?.[0];
         const photo = files?.photo?.[0];
         const signature = files?.signature?.[0];
         const result = await studentService.addStudent({

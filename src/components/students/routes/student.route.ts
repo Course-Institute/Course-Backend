@@ -11,8 +11,8 @@ router.get('/profile', studentController.getStudentProfileController);
 
 // Protected routes (require authentication and admin role)
 router.post('/add-student', authenticateToken, authorizeAdmin, uploadStudentFiles.fields([
-    { name: 'aadharCardFront', maxCount: 1 },
-    { name: 'aadharCardBack', maxCount: 1 },
+    { name: 'adharCardFront', maxCount: 1 },
+    { name: 'adharCardBack', maxCount: 1 },
     { name: 'photo', maxCount: 1 },
     { name: 'signature', maxCount: 1 }
 ]), multerErrorHandler, studentController.addStudentController);
