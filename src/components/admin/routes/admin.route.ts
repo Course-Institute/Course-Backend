@@ -16,7 +16,6 @@ router.get('/profile', userController.getAdminProfile);
 router.get('/dashboard', adminController.getAdminDashboardController);
 
 // Student management routes
-router.get('/students', adminController.listAllStudentsController);
 router.get('/students/:registrationNo', adminController.getStudentDetailsController);
 
 export default router;

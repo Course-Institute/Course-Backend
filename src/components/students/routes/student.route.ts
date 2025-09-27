@@ -1,5 +1,6 @@
 import express from 'express';
 import studentController from '../controller/student.controller.js';
+import adminController from '../../admin/controller/admin.controller.js';
 import { authenticateToken, authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
 import { uploadStudentFiles, multerErrorHandler } from '../../auth/middleware/upload.middleware.js';
 
@@ -15,5 +16,8 @@ router.post('/add-student', authenticateToken, authorizeAdmin, uploadStudentFile
     { name: 'photo', maxCount: 1 },
     { name: 'signature', maxCount: 1 }
 ]), multerErrorHandler, studentController.addStudentController);
+
+// List all students (admin only)
+router.get('/students', authenticateToken, authorizeAdmin, adminController.listAllStudentsController);
 
 export default router;

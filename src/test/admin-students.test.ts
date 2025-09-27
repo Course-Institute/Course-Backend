@@ -17,10 +17,10 @@ describe('Admin Student Management API', () => {
         }
     });
 
-    describe('GET /admin/students', () => {
+    describe('GET /student', () => {
         it('should list all students with pagination', async () => {
             const response = await request(app)
-                .get('/admin/students/')
+                .get('/student/')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .set('Cookie', `token=${adminToken}`)
                 .query({
@@ -37,7 +37,7 @@ describe('Admin Student Management API', () => {
 
         it('should filter students by faculty', async () => {
             const response = await request(app)
-                .get('/admin/students/')
+                .get('/student/')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .set('Cookie', `token=${adminToken}`)
                 .query({
@@ -59,7 +59,7 @@ describe('Admin Student Management API', () => {
 
         it('should search students by name', async () => {
             const response = await request(app)
-                .get('/admin/students/')
+                .get('/student/')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .query({
                     search: 'john', // Replace with actual student name
@@ -73,7 +73,7 @@ describe('Admin Student Management API', () => {
 
         it('should require authentication', async () => {
             const response = await request(app)
-                .get('/admin/students/');
+                .get('/student/');
 
             expect(response.status).toBe(401);
         });
@@ -83,7 +83,7 @@ describe('Admin Student Management API', () => {
         it('should get student details by registration number', async () => {
             // First, get a student from the list
             const listResponse = await request(app)
-                .get('/admin/students/')
+                .get('/student/')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .query({ limit: 1 });
 
@@ -91,7 +91,7 @@ describe('Admin Student Management API', () => {
                 const registrationNo = listResponse.body.data.students[0].registrationNo;
                 
                 const response = await request(app)
-                    .get(`/admin/students//${registrationNo}`)
+                    .get(`/admin/students/${registrationNo}`)
                     .set('Authorization', `Bearer ${adminToken}`);
 
                 expect(response.status).toBe(200);
@@ -102,7 +102,7 @@ describe('Admin Student Management API', () => {
 
         it('should return 404 for invalid registration number', async () => {
             const response = await request(app)
-                .get('/admin/students//invalid123456')
+                .get('/admin/students/invalid123456')
                 .set('Authorization', `Bearer ${adminToken}`);
 
             expect(response.status).toBe(404);

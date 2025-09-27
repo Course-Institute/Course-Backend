@@ -88,7 +88,7 @@ Returns dashboard statistics including:
 
 #### 3. List All Students
 ```http
-GET /admin/students
+GET /student/
 ```
 Retrieves a paginated list of all students with optional filtering.
 
@@ -102,7 +102,7 @@ Retrieves a paginated list of all students with optional filtering.
 
 **Example:**
 ```http
-GET /admin/students?page=1&limit=10&search=john&faculty=Engineering
+GET /student/?page=1&limit=10&search=john&faculty=Engineering
 ```
 
 **Response:**
