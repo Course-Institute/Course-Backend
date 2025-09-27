@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../app';
-import { UserModel } from '../components/users/models/user.model';
+import app from '../app.js';
+import { UserModel } from '../components/users/models/user.model.js';
 import mongoose from 'mongoose';
 
 describe('Admin Login System', () => {

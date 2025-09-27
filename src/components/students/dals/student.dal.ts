@@ -1,21 +1,41 @@
-import { StudentModel } from "../model/student.model";
+import { UserModel } from "../../users/models/user.model.js";
+import { StudentModel } from "../model/student.model.js";
+
+// Function to generate unique 12-digit registration number
+const generateRegistrationNumber = async (): Promise<string> => {
+    let registrationNo: string;
+    let isUnique = false;
+    
+    while (!isUnique) {
+        // Generate 12-digit number
+        registrationNo = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+        
+        // Check if this registration number already exists
+        const existingStudent = await StudentModel.findOne({ registrationNo });
+        if (!existingStudent) {
+            isUnique = true;
+        }
+    }
+    
+    return registrationNo!;
+};
 
 const addStudentDal = async ({
     candidateName,
     motherName,
     fatherName,
     gender,
-    dob,
-    adharNumber,
+    dateOfBirth,
+    adharCardNo,
     category,
     areYouEmployed,
     employerName,
     designation,
     contactNumber,
     alternateNumber,
-    email,
+    emailAddress,
     currentAddress,
-    parmanentAddress,
+    permanentAddress,
     city,
     state,
     nationality,
@@ -36,58 +56,62 @@ const addStudentDal = async ({
     photo,
     signature
 }:{
-    candidateName: string, 
-    motherName: string, 
-    fatherName: string, 
-    gender: string, 
-    dob: string, 
-    adharNumber: string, 
-    category: string, 
-    areYouEmployed: string, 
-    employerName: string, 
-    designation: string, 
-    contactNumber: string, 
-    alternateNumber: string, 
-    email: string, 
-    currentAddress: string, 
-    parmanentAddress: string, 
-    city: string, 
-    state: string, 
-    nationality: string, 
-    country: string, 
-    pincode: string, 
-    courseType: string, 
-    faculty: string, 
-    course: string, 
-    stream: string, 
-    year: string, 
-    monthSession: string, 
-    hostelFacility: string, 
-    session: string, 
-    duration: string, 
-    courseFee: string, 
-    aadharFront: string, 
-    aadharBack: string, 
-    photo: string, 
-    signature: string
+    candidateName?: string, 
+    motherName?: string, 
+    fatherName?: string, 
+    gender?: string, 
+    dateOfBirth?: string, 
+    adharCardNo?: string, 
+    category?: string, 
+    areYouEmployed?: string, 
+    employerName?: string, 
+    designation?: string, 
+    contactNumber?: string, 
+    alternateNumber?: string, 
+    emailAddress?: string, 
+    currentAddress?: string, 
+    permanentAddress?: string, 
+    city?: string, 
+    state?: string, 
+    nationality?: string, 
+    country?: string, 
+    pincode?: string, 
+    courseType?: string, 
+    faculty?: string, 
+    course?: string, 
+    stream?: string, 
+    year?: string, 
+    monthSession?: string, 
+    hostelFacility?: string, 
+    session?: string, 
+    duration?: string, 
+    courseFee?: string, 
+    aadharFront?: string, 
+    aadharBack?: string, 
+    photo?: string, 
+    signature?: string
 }): Promise<any> => {
     try {
+        // Generate unique registration number
+        const registrationNo = await generateRegistrationNumber();
+        
         return await StudentModel.create({
+            registrationNo: registrationNo,
             candidateName: candidateName,
             motherName: motherName,
             fatherName: fatherName,
             gender: gender,
-            dob: dob,
-            adharNumber: adharNumber,
+            dateOfBirth: dateOfBirth,
+            adharCardNo: adharCardNo,
             category: category,
             areYouEmployed: areYouEmployed,
             employerName: employerName,
             designation: designation,
             contactNumber: contactNumber,
             alternateNumber: alternateNumber,
-            email: email,
+            emailAddress: emailAddress,
             currentAddress: currentAddress,
-            parmanentAddress: parmanentAddress,
+            permanentAddress: permanentAddress,
             city: city,
             state: state,
             nationality: nationality,
@@ -113,6 +137,18 @@ const addStudentDal = async ({
     }
 };
 
+const findStudentByRegistrationNo = async (registrationNo: string): Promise<any> => {
+    try {
+        const student = await UserModel.findOne({ registrationNo: registrationNo }).lean();
+        console.log(student);
+        return student;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
+
 export default { 
-    addStudentDal
+    addStudentDal,
+    findStudentByRegistrationNo
 };

@@ -4,9 +4,9 @@
  */
 
 import request from 'supertest';
-import { UserModel } from '../components/users/models/user.model';
+import { UserModel } from '../components/users/models/user.model.js';
 import mongoose from 'mongoose';
-import app from '../app';
+import app from '../app.js';
 
 async function demoAdminLoginSystem() {
     console.log('🚀 Starting Admin Login System Demo\n');

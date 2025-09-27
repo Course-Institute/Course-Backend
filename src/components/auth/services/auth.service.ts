@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import userDal from '../../users/dals/user.dal';
+import userDal from '../../users/dals/user.dal.js';
+import studentDal from '../../students/dals/student.dal.js';
 
 interface LoginResponse {
     user: {
@@ -8,6 +9,8 @@ interface LoginResponse {
         name: string;
         email: string;
         role: string;
+        registrationNo?: string;
+        dob?: string;
     };
     token: string;
 }
@@ -23,9 +26,14 @@ interface LoginData {
     password: string;
 }
 
+interface StudentLoginData {
+    registrationNo: string;
+    dateOfBirth: string;
+}
+
 class AuthService {
     private readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-    private readonly JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+    private readonly JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '5minutes';
 
     async registerAdmin(data: RegisterData): Promise<any> {
         try {
@@ -129,6 +137,51 @@ class AuthService {
         } catch (error) {
             throw error;
         }
+    }
+
+    async studentLogin(data: StudentLoginData): Promise<LoginResponse> {
+        try {
+            // Find student by registration number
+            const student = await studentDal.findStudentByRegistrationNo(data.registrationNo);
+            console.log(student);
+            if (!student) {
+                throw new Error('Invalid registration number or date of birth');
+            }
+
+            // Check if date of birth matches
+            if (student.dob !== data.dateOfBirth ) {
+                throw new Error('Invalid registration number or date of birth');
+            }
+
+            // Generate JWT token for student
+            const token = this.generateStudentToken(student._id.toString(), 'student');
+
+            return {
+                user: {
+                    id: student._id.toString(),
+                    name: student.name || '',
+                    email: student.email || '',
+                    role: 'student',
+                    registrationNo: student.registrationNo,
+                    dob: student.dob
+                },
+                token
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    private generateStudentToken(studentId: string, role: string): string {
+        return jwt.sign(
+            { 
+                userId: studentId, 
+                role,
+                type: 'student'
+            },
+            this.JWT_SECRET,
+            { expiresIn: this.JWT_EXPIRES_IN } as jwt.SignOptions
+        );
     }
 }
 

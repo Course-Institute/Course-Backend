@@ -5,9 +5,9 @@
  * In a real application, you would use a testing framework like Jest.
  */
 
-import userService from '../components/users/services/user.service';
-import { UserRole } from '../components/users/enums/user.const';
-import authService from '../components/auth/services/auth.service';
+import userService from '../components/users/services/user.service.js';
+import { UserRole } from '../components/users/enums/user.const.js';
+import authService from '../components/auth/services/auth.service.js';
 
 // Test data
 const testUsers = [

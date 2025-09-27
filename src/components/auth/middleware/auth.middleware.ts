@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import authService from '../services/auth.service';
+import authService from '../services/auth.service.js';
 
 // Extend Request interface to include user
 declare global {
@@ -16,20 +16,25 @@ declare global {
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log('Auth middleware - req.headers.authorization:', req.headers.authorization);
         const authHeader = req.headers.authorization;
         const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
         if (!token) {
+            console.log('Auth middleware - No token found');
             return res.status(401).json({
                 status: false,
                 message: 'Access token required'
             });
         }
 
+        console.log('Auth middleware - Token found, verifying...');
         const decoded = await authService.verifyToken(token);
         req.user = decoded;
+        console.log('Auth middleware - Token verified, user:', req.user);
         next();
     } catch (error) {
+        console.log('Auth middleware - Token verification failed:', error);
         return res.status(401).json({
             status: false,
             message: 'Invalid or expired token'
@@ -39,7 +44,9 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 
 export const authorizeAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log('Admin middleware - req.user:', req.user);
         if (!req.user) {
+            console.log('Admin middleware - No user found');
             return res.status(401).json({
                 status: false,
                 message: 'Authentication required'
@@ -47,14 +54,17 @@ export const authorizeAdmin = async (req: Request, res: Response, next: NextFunc
         }
 
         if (req.user.role !== 'admin' || req.user.type !== 'admin') {
+            console.log('Admin middleware - User is not admin. Role:', req.user.role, 'Type:', req.user.type);
             return res.status(403).json({
                 status: false,
                 message: 'Admin access required'
             });
         }
 
+        console.log('Admin middleware - User is admin, proceeding...');
         next();
     } catch (error) {
+        console.log('Admin middleware - Error:', error);
         return res.status(500).json({
             status: false,
             message: 'Internal server error'

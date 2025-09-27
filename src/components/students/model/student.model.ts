@@ -1,83 +1,90 @@
 import mongoose, { Model, Schema, Document } from "mongoose";
 
 interface IStudent extends Document {
-    candidateName: string;
-    motherName: string;
-    fatherName: string;
-    gender: string;
-    dob: string;
-    adharNumber: string;
-    category: string;
-    areYouEmployed: string;
-    employerName: string;
-    designation: string;
-    contactNumber: string;
-    alternateNumber: string;
-    email: string;
-    currentAddress: string;
-    parmanentAddress: string;
-    city: string;
-    state: string;
-    nationality: string;
-    country: string;
-    pincode: string;
-    courseType: string;
-    faculty: string;
-    course: string;
-    stream: string;
-    year: string;
-    monthSession: string;
-    hostelFacility: string;
-    session: string;
-    duration: string;
-    courseFee: string;
-    aadharFront: string;
-    aadharBack: string;
-    photo: string;
-    signature: string;
+    registrationNo?: string;
+    candidateName?: string;
+    motherName?: string;
+    fatherName?: string;
+    gender?: string;
+    dateOfBirth?: string;
+    adharCardNo?: string;
+    category?: string;
+    areYouEmployed?: string;
+    employerName?: string;
+    designation?: string;
+    contactNumber?: string;
+    alternateNumber?: string;
+    emailAddress?: string;
+    currentAddress?: string;
+    permanentAddress?: string;
+    city?: string;
+    state?: string;
+    nationality?: string;
+    country?: string;
+    pincode?: string;
+    courseType?: string;
+    faculty?: string;
+    course?: string;
+    stream?: string;
+    year?: string;
+    monthSession?: string;
+    hostelFacility?: string;
+    session?: string;
+    duration?: string;
+    courseFee?: string;
+    aadharFront?: string;
+    aadharBack?: string;
+    photo?: string;
+    signature?: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
 const studentSchema = new Schema<IStudent>({
-    candidateName: { type: String, required: true },
-    motherName: { type: String, required: true },
-    fatherName: { type: String, required: true },
-    gender: { type: String, required: true },
-    dob: { type: String, required: true },
-    adharNumber: { type: String, required: true },
-    category: { type: String, required: true },
-    areYouEmployed: { type: String, required: true },
-    employerName: { type: String, required: true },
-    designation: { type: String, required: true },
-    contactNumber: { type: String, required: true },
-    alternateNumber: { type: String, required: true },
-    email: { type: String, required: true },
-    currentAddress: { type: String, required: true },
-    parmanentAddress: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    nationality: { type: String, required: true },
-    country: { type: String, required: true },
-    pincode: { type: String, required: true },
-    courseType: { type: String, required: true },
-    faculty: { type: String, required: true },
-    course: { type: String, required: true },
-    stream: { type: String, required: true },
-    year: { type: String, required: true },
-    monthSession: { type: String, required: true },
-    hostelFacility: { type: String, required: true },
-    session: { type: String, required: true },
-    duration: { type: String, required: true },
-    courseFee: { type: String, required: true },
-    aadharFront: { type: String, required: true },
-    aadharBack: { type: String, required: true },
-    photo: { type: String, required: true },
-    signature: { type: String, required: true }
+    registrationNo: { type: String, required: false, unique: true },
+    candidateName: { type: String, required: false },
+    motherName: { type: String, required: false },
+    fatherName: { type: String, required: false },
+    gender: { type: String, required: false },
+    dateOfBirth: { type: String, required: false },
+    adharCardNo: { type: String, required: false },
+    category: { type: String, required: false },
+    areYouEmployed: { type: String, required: false },
+    employerName: { type: String, required: false },
+    designation: { type: String, required: false },
+    contactNumber: { type: String, required: false },
+    alternateNumber: { type: String, required: false },
+    emailAddress: { type: String, required: false },
+    currentAddress: { type: String, required: false },
+    permanentAddress: { type: String, required: false },
+    city: { type: String, required: false },
+    state: { type: String, required: false },
+    nationality: { type: String, required: false },
+    country: { type: String, required: false },
+    pincode: { type: String, required: false },
+    courseType: { type: String, required: false },
+    faculty: { type: String, required: false },
+    course: { type: String, required: false },
+    stream: { type: String, required: false },
+    year: { type: String, required: false },
+    monthSession: { type: String, required: false },
+    hostelFacility: { type: String, required: false },
+    session: { type: String, required: false },
+    duration: { type: String, required: false },
+    courseFee: { type: String, required: false },
+    aadharFront: { type: String, required: false },
+    aadharBack: { type: String, required: false },
+    photo: { type: String, required: false },
+    signature: { type: String, required: false }
 },
 {
     timestamps: true
 });
+
+// Clear any existing model to avoid caching issues
+if (mongoose.models.students) {
+    delete mongoose.models.students;
+}
 
 const StudentModel: Model<IStudent> =
     mongoose.model<IStudent>(

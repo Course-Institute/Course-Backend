@@ -1,8 +1,8 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
-import userController from '../controller/user.controller';
-import { validatePassword, authenticateToken, authorizeAdmin } from '../../auth/middleware/auth.middleware';
+import userController from '../controller/user.controller.js';
+import { validatePassword, authenticateToken, authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
 
 // Configure multer for disk storage - OUTSIDE app folder
 const storage = multer.diskStorage({
@@ -22,6 +22,7 @@ const router = express.Router();
 
 // Public routes
 router.post('/admin-login', userController.adminLogin);
+router.post('/student-login', userController.studentLogin);
 
 // Protected routes (require password validation for registration)
 router.post('/register-admin', validatePassword, userController.registerAdmin);

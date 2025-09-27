@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import userDal from "../dals/user.dal";
+import userDal from "../dals/user.dal.js";
 
 const registerAdmin = async ({name, email, password}: {name: string, email: string, password: string}) => {
     try {

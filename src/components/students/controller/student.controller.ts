@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import studentService from '../services/student.service';
+import studentService from '../services/student.service.js';
 
 const addStudentController = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -8,17 +8,17 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             motherName,
             fatherName,
             gender,
-            dob,
-            adharNumber,
+            dateOfBirth,    
+            adharCardNo,
             category,
             areYouEmployed,
             employerName,
             designation,
             contactNumber,
             alternateNumber,
-            email,
+            emailAddress,
             currentAddress,
-            parmanentAddress,
+            permanentAddress,
             city,
             state,
             nationality,
@@ -35,18 +35,22 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             duration,
             courseFee,
         } = req.body;
-        const files = req.files as Express.Multer.File[];
-        const [aadharFront, aadharBack, photo, signature] = files || [];
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        
+        const aadharFront = files?.aadharCardFront?.[0];
+        const aadharBack = files?.aadharCardBack?.[0];
+        const photo = files?.photo?.[0];
+        const signature = files?.signature?.[0];
         const result = await studentService.addStudent({
             candidateName,
             motherName,
             fatherName,
             gender,
-            dob, adharNumber, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, email, currentAddress, parmanentAddress, city, state, nationality, country, pincode, courseType, faculty, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature
+            dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, faculty, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature
         });
         return res.status(200).json({
             status: true,
-            message: 'Student added successfully',
+            message: `Student added successfully with Registration Number: ${result.registrationNo}`,
             data: result
         });
     } catch (error: any) {

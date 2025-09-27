@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import authService from '../../auth/services/auth.service';
-import userService from '../services/user.service';
+import authService from '../../auth/services/auth.service.js';
+import userService from '../services/user.service.js';
 
 const registerAdmin = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -103,4 +103,37 @@ const getAdminProfile = async (req: Request, res: Response): Promise<Response> =
 
 
 
-export default { registerAdmin, adminLogin, getAdminProfile };
+const studentLogin = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { registrationNo, dateOfBirth } = req.body;
+
+        // Validate required fields
+        if (!registrationNo || !dateOfBirth) {
+            return res.status(400).json({
+                status: false,
+                message: 'Registration number and date of birth are required',
+                error: 'Missing required fields'
+            });
+        }
+
+        // Authenticate student
+        const result = await authService.studentLogin({
+            registrationNo,
+            dateOfBirth
+        });
+
+        return res.status(200).json({
+            status: true,
+            message: 'Student login successful',
+            data: result
+        });
+    } catch (error: any) {
+        return res.status(401).json({
+            status: false,
+            message: error.message || 'Login failed',
+            error: error.message
+        });
+    }
+};
+
+export default { registerAdmin, adminLogin, getAdminProfile, studentLogin };

@@ -1,9 +1,17 @@
-import { UserModel } from "../models/user.model";
+import { UserModel } from "../models/user.model.js";
 
 interface RegisterAdminData {
     name: string;
     email: string;
     password: string;
+}
+
+interface CreateStudentUserData {
+    name: string;
+    email: string;
+    password: string;
+    dob: string;
+    registrationNo: string;
 }
 
 const findUserByEmail = async (email: string): Promise<any> => {
@@ -51,11 +59,27 @@ const checkUserExists = async (email: string): Promise<any> => {
         }
     }
 
+const createStudentUser = async (data: CreateStudentUserData): Promise<any> => {
+        try {
+            return await UserModel.create({
+                name: data.name,
+                email: data.email,
+                password: data.password,
+                role: 'student',
+                dob: data.dob,
+                registrationNo: data.registrationNo
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
 
 export default { 
         findUserByEmail,
         findUserById,
         createAdmin,
         findAdminById,
-        checkUserExists
+        checkUserExists,
+        createStudentUser
 }

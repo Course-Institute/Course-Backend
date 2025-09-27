@@ -1,8 +1,8 @@
 import express from 'express';
 const router = express.Router();
-import userRouter from '../components/users/routes/user.route';
-import adminRouter from '../components/admin/routes/admin.route';
-import studentRouter from '../components/students/routes/student.route';
+import userRouter from '../components/users/routes/user.route.js';
+import adminRouter from '../components/admin/routes/admin.route.js';
+import studentRouter from '../components/students/routes/student.route.js';
 
 // User routes (includes public login and protected registration)
 router.use('/user', userRouter);
