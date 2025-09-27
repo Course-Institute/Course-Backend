@@ -106,10 +106,10 @@ const addStudent = async ({
             session, 
             duration, 
             courseFee, 
-            aadharFront: aadharFront?.path || '', 
-            aadharBack: aadharBack?.path || '', 
-            photo: photo?.path || '', 
-            signature: signature?.path || ''
+            aadharFront: aadharFront?.filename ? `/uploads/${aadharFront.filename}` : '', 
+            aadharBack: aadharBack?.filename ? `/uploads/${aadharBack.filename}` : '', 
+            photo: photo?.filename ? `/uploads/${photo.filename}` : '', 
+            signature: signature?.filename ? `/uploads/${signature.filename}` : ''
         });
 
         // Check if user with this email already exists
