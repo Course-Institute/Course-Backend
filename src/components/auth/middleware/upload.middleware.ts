@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         // Go up from src/components/auth/middleware to project root, then to uploads
-        const uploadPath = path.join(__dirname, '../../../../uploads/');
+        const uploadPath = '/var/www/mivpsa/uploads/';
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
