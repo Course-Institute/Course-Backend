@@ -65,7 +65,7 @@ POST /api/user/student-login
 ### Using cURL
 ```bash
 # Successful login
-curl -X POST http://localhost:3000/api/user/student-login \
+curl -X POST http://localhost:4000/api/user/student-login \
   -H "Content-Type: application/json" \
   -d '{
     "registrationNo": "123456789012",
@@ -73,12 +73,12 @@ curl -X POST http://localhost:3000/api/user/student-login \
   }'
 
 # Missing fields
-curl -X POST http://localhost:3000/api/user/student-login \
+curl -X POST http://localhost:4000/api/user/student-login \
   -H "Content-Type: application/json" \
   -d '{}'
 
 # Invalid credentials
-curl -X POST http://localhost:3000/api/user/student-login \
+curl -X POST http://localhost:4000/api/user/student-login \
   -H "Content-Type: application/json" \
   -d '{
     "registrationNo": "999999999999",
