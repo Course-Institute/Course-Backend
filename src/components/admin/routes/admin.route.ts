@@ -18,4 +18,6 @@ router.get('/dashboard', adminController.getAdminDashboardController);
 // Student management routes
 router.get('/students/:registrationNo', adminController.getStudentDetailsController);
 
+router.post('/approve-student', adminController.approveStudentController);
+
 export default router;

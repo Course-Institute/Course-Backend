@@ -1,3 +1,4 @@
+import { IStudent } from '../../students/model/student.model.js';
 import adminDal from '../dals/admin.dal.js';
 
 const listAllStudents = async ({
@@ -24,7 +25,7 @@ const listAllStudents = async ({
             course,
             session
         });
-        
+
         return result;
     } catch (error) {
         console.log('Error in listAllStudents service:', error);
@@ -35,11 +36,11 @@ const listAllStudents = async ({
 const getStudentDetails = async (registrationNo: string) => {
     try {
         const student = await adminDal.getStudentByRegistrationNo(registrationNo);
-        
+
         if (!student) {
             throw new Error('Student not found with the provided registration number');
         }
-        
+
         return student;
     } catch (error) {
         console.log('Error in getStudentDetails service:', error);
@@ -57,8 +58,36 @@ const getDashboardData = async () => {
     }
 };
 
+const approveStudentService = async (
+    {
+        registrationNo
+    }: {
+        registrationNo: string
+    }): Promise<{
+        status: boolean,
+        message: string,
+        data: IStudent | null
+    }> => {
+    try {
+        const updatedStudent = await adminDal.approveStudentDal({ registrationNo });
+        return {
+            status: true,
+            message: "Student approved successfully",
+            data: updatedStudent.data
+        };
+    } catch (error) {
+        console.error(error, "Failed to approve student | service");
+        return {
+            status: false,
+            message: `${error} | Failed to approve student | service `,
+            data: null
+        }
+    }
+}
+
 export default {
     listAllStudents,
     getStudentDetails,
-    getDashboardData
+    getDashboardData,
+    approveStudentService,
 };
