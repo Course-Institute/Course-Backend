@@ -1,4 +1,4 @@
-import { StudentModel } from '../../students/model/student.model.js';
+import { IStudent, StudentModel } from '../../students/model/student.model.js';
 import { UserModel } from '../../users/models/user.model.js';
 
 const getAllStudents = async ({
@@ -179,8 +179,36 @@ const getDashboardStatistics = async () => {
     }
 };
 
+const approveStudentDal = async (
+    {
+        registrationNo
+    }: {
+        registrationNo: string
+    }): Promise<{ status: boolean, message: string, data: IStudent | null }> => {
+    try {
+        const updatedStudent = await StudentModel.findOneAndUpdate(
+            { registrationNo },
+            { $set: { isApprovedByAdmin: true } },
+            { new: true, runValidators: true }
+        );
+        return {
+            status: true,
+            message: "Student Approved successfully",
+            data: updatedStudent as IStudent
+        }
+    } catch (error) {
+        console.error(error);
+        return {
+            status: false,
+            message: `${error} | failed to approve student | DAL `,
+            data: null
+        }
+    }
+}
+
 export default {
     getAllStudents,
     getStudentByRegistrationNo,
-    getDashboardStatistics
+    getDashboardStatistics,
+    approveStudentDal,
 };

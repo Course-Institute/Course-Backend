@@ -38,6 +38,7 @@ interface IStudent extends Document {
     signature?: string;
     createdAt: Date;
     updatedAt: Date;
+    isApprovedByAdmin: Boolean;
 }
 
 const studentSchema = new Schema<IStudent>({
@@ -75,11 +76,12 @@ const studentSchema = new Schema<IStudent>({
     aadharFront: { type: String, required: false },
     aadharBack: { type: String, required: false },
     photo: { type: String, required: false },
-    signature: { type: String, required: false }
+    signature: { type: String, required: false },
+    isApprovedByAdmin: { type: Boolean, required: false, default: false }
 },
-{
-    timestamps: true
-});
+    {
+        timestamps: true
+    });
 
 const StudentModel: Model<IStudent> =
     mongoose.model<IStudent>(
