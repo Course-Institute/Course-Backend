@@ -1,5 +1,7 @@
 import { IStudent } from '../../students/model/student.model.js';
 import adminDal from '../dals/admin.dal.js';
+import centerService from '../../centers/services/center.service.js';
+import { CreateCenterRequest, CenterModel } from '../../centers/models/center.model.js';
 
 const listAllStudents = async ({
     page = 1,
@@ -85,9 +87,28 @@ const approveStudentService = async (
     }
 }
 
+const registerCenterService = async (centerData: CreateCenterRequest): Promise<CenterModel> => {
+    try {
+        // Admin is registering the center, so we can set status to approved by default
+        const result = await centerService.createCenter(centerData);
+        
+        // Update the status to approved since admin is registering it
+        if (result.id) {
+            await centerService.updateCenterStatus(result.id, 'approved');
+            result.status = 'approved';
+        }
+        
+        return result;
+    } catch (error) {
+        console.log('Error in registerCenterService:', error);
+        throw error;
+    }
+};
+
 export default {
     listAllStudents,
     getStudentDetails,
     getDashboardData,
     approveStudentService,
+    registerCenterService,
 };

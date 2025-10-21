@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import adminService from '../services/admin.service.js';
 import { sendResponse } from '../../../utils/response.util.js';
+import { CreateCenterRequest } from '../../centers/models/center.model.js';
 
 const listAllStudentsController = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -126,9 +127,62 @@ const approveStudentController = async (req: Request, res: Response): Promise<Re
     }
 }
 
+const registerCenterController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const centerData: CreateCenterRequest = req.body;
+        
+        // Validate required fields
+        if (!centerData.centerDetails || !centerData.centerDetails.centerName) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Center name is required',
+            });
+        }
+
+        if (!centerData.centerDetails.officialEmailId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Official email ID is required',
+            });
+        }
+
+        if (!centerData.loginCredentials || !centerData.loginCredentials.username) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Username is required',
+            });
+        }
+
+        const result = await adminService.registerCenterService(centerData);
+        
+        return sendResponse({
+            res,
+            statusCode: 201,
+            status: true,
+            message: 'Center registered successfully by admin',
+            data: result,
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: error.message || 'Failed to register center',
+            error: error.message
+        });
+    }
+}
+
 export default {
     listAllStudentsController,
     getStudentDetailsController,
     getAdminDashboardController,
     approveStudentController,
+    registerCenterController,
 };

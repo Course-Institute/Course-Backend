@@ -1,0 +1,248 @@
+[
+  {
+    "id": 1,
+    "centerName": "Downtown Learning Center",
+    "centerCode": "DLC001",
+    "capacity": 150
+  },
+  {
+    "id": 2,
+    "centerName": "Westside Education Hub",
+    "centerCode": "WEH002",
+    "capacity": 200
+  },
+  {
+    "id": 3,
+    "centerName": "Central Training Institute",
+    "centerCode": "CTI003",
+    "capacity": 120
+  },
+  {
+    "id": 4,
+    "centerName": "Northside Learning Academy",
+    "centerCode": "NLA004",
+    "capacity": 180
+  },
+  {
+    "id": 5,
+    "centerName": "Eastside Skill Center",
+    "centerCode": "ESC005",
+    "capacity": 160
+  },
+  {
+    "id": 6,
+    "centerName": "Southside Training Center",
+    "centerCode": "STC006",
+    "capacity": 140
+  },
+  {
+    "id": 7,
+    "centerName": "Metropolitan Education Center",
+    "centerCode": "MEC007",
+    "capacity": 300
+  },
+  {
+    "id": 8,
+    "centerName": "Professional Development Hub",
+    "centerCode": "PHB008",
+    "capacity": 250
+  },
+  {
+    "id": 9,
+    "centerName": "Community Learning Center",
+    "centerCode": "CLC009",
+    "capacity": 100
+  },
+  {
+    "id": 10,
+    "centerName": "Advanced Training Facility",
+    "centerCode": "ATF010",
+    "capacity": 220
+  },
+  {
+    "id": 11,
+    "centerName": "Advanced Training Institute",
+    "centerCode": "ATI011",
+    "capacity": 220
+  },
+  {
+    "id": 12,
+    "centerName": "Advanced Skill Center1",
+    "centerCode": "ASC001",
+    "capacity": 220
+  },
+  {
+    "id": 13,
+    "centerName": "Advanced Skill Center2",
+    "centerCode": "ASC002",
+    "capacity": 220
+  },
+  {
+    "id": 14,
+    "centerName": "Advanced Skill Center3",
+    "centerCode": "ASC003",
+    "capacity": 220
+  },
+  {
+    "id": 15,
+    "centerName": "Advanced Skill Center4",
+    "centerCode": "ASC004",
+    "capacity": 220
+  },
+  {
+    "id": 16,
+    "centerName": "Advanced Skill Center5",
+    "centerCode": "ASC005",
+    "capacity": 220
+  },
+  {
+    "id": 17,
+    "centerName": "Advanced Skill Center6",
+    "centerCode": "ASC006",
+    "capacity": 220
+  },
+  {
+    "id": 18,
+    "centerName": "Advanced Skill Center7",
+    "centerCode": "ASC007",
+    "capacity": 220
+  },
+  {
+    "id": 19,
+    "centerName": "Advanced Skill Center8",
+    "centerCode": "ASC008",
+    "capacity": 220
+  },
+  {
+    "id": 20,
+    "centerName": "Advanced Skill Center9",
+    "centerCode": "ASC009",
+    "capacity": 220
+  },
+  {
+    "id": 21,
+    "centerName": "Advanced Skill Center10",
+    "centerCode": "ASC010",
+    "capacity": 220
+  },
+  {
+    "id": 22,
+    "centerName": "Advanced Skill Center11",
+    "centerCode": "ASC011",
+    "capacity": 220
+  },
+  {
+    "id": 23,
+    "centerName": "Advanced Skill Center12",
+    "centerCode": "ASC012",
+    "capacity": 220
+  },
+  {
+    "id": 24,
+    "centerName": "Advanced Skill Center13",
+    "centerCode": "ASC013",
+    "capacity": 220
+  },
+  {
+    "id": 25,
+    "centerName": "Advanced Skill Center14",
+    "centerCode": "ASC014",
+    "capacity": 220
+  },
+  {
+    "id": 26,
+    "centerName": "Advanced Skill Center15",
+    "centerCode": "ASC015",
+    "capacity": 220
+  },
+  {
+    "id": 27,
+    "centerName": "Advanced Skill Center16",
+    "centerCode": "ASC016",
+    "capacity": 220
+  },
+  {
+    "id": 28,
+    "centerName": "Advanced Skill Center17",
+    "centerCode": "ASC017",
+    "capacity": 220
+  },
+  {
+    "id": 29,
+    "centerName": "Advanced Skill Center18",
+    "centerCode": "ASC018",
+    "capacity": 220
+  },
+  {
+    "id": 30,
+    "centerName": "Advanced Skill Center19",
+    "centerCode": "ASC019",
+    "capacity": 220
+  },
+  {
+    "id": 31,
+    "centerName": "Advanced Skill Center20",
+    "centerCode": "ASC020",
+    "capacity": 220
+  },
+  {
+    "id": 32,
+    "centerName": "Advanced Skill Center21",
+    "centerCode": "ASC021",
+    "capacity": 220
+  },
+  {
+    "id": 33,
+    "centerName": "Advanced Skill Center22",
+    "centerCode": "ASC022",
+    "capacity": 220
+  },
+  {
+    "id": 34,
+    "centerName": "Advanced Skill Center23",
+    "centerCode": "ASC023",
+    "capacity": 220
+  },
+  {
+    "id": 35,
+    "centerName": "Advanced Skill Center24",
+    "centerCode": "ASC024",
+    "capacity": 220
+  },
+  {
+    "id": 36,
+    "centerName": "Advanced Skill Center25",
+    "centerCode": "ASC025",
+    "capacity": 220
+  },
+  {
+    "id": 37,
+    "centerName": "Advanced Skill Center26",
+    "centerCode": "ASC026",
+    "capacity": 220
+  },
+  {
+    "id": 38,
+    "centerName": "Advanced Skill Center27",
+    "centerCode": "ASC027",
+    "capacity": 220
+  },
+  {
+    "id": 39,
+    "centerName": "Advanced Skill Center28",
+    "centerCode": "ASC028",
+    "capacity": 220
+  },
+  {
+    "id": 40,
+    "centerName": "Advanced Skill Center29",
+    "centerCode": "ASC029",
+    "capacity": 220
+  },
+  {
+    "id": 41,
+    "centerName": "Advanced Skill Center30",
+    "centerCode": "ASC030",
+    "capacity": 220
+  }
+]

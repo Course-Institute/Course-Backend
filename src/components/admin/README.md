@@ -1,225 +1,188 @@
-# Admin Component
+# Admin API Documentation
 
-This component handles all admin-related functionality including student management and dashboard analytics.
+This module handles admin-specific operations including student management and center registration.
 
-## Structure
+## Authentication & Authorization
 
-```
-src/components/admin/
-├── controller/
-│   └── admin.controller.ts    # Admin route handlers
-├── dals/
-│   └── admin.dal.ts          # Database access layer
-├── routes/
-│   └── admin.route.ts        # Admin route definitions
-├── services/
-│   └── admin.service.ts      # Business logic layer
-└── README.md                 # This documentation
-```
+All admin routes require:
+1. **Authentication**: Valid JWT token
+2. **Authorization**: Admin role verification
+
+Routes are protected with middleware:
+- `authenticateToken`: Validates JWT token
+- `authorizeAdmin`: Ensures user has admin role
 
 ## API Endpoints
 
-All admin endpoints require authentication and admin role authorization.
+### Admin Profile
+- **GET** `/admin/profile` - Get admin profile information
 
-### Authentication
-- **Required**: Bearer token in Authorization header
-- **Role**: Admin role required
+### Admin Dashboard
+- **GET** `/admin/dashboard` - Get dashboard statistics and data
 
-### Base URL
-```
-/admin
-```
+### Student Management
+- **GET** `/admin/students/:registrationNo` - Get specific student details
+- **POST** `/admin/approve-student` - Approve a student registration
 
-### Endpoints
+### Center Management (Admin Only)
+- **POST** `/admin/register-center` - Register a new center (Admin Only)
 
-#### 1. Get Admin Profile
-```http
-GET /admin/profile
-```
-Returns the admin user profile information.
+## Center Registration (Admin Only)
 
-#### 2. Get Admin Dashboard
-```http
-GET /admin/dashboard
-```
-Returns dashboard statistics including:
-- Total students count
-- Recent registrations (last 7 days)
-- Students by faculty
-- Students by course
-- Students by session
-- Monthly registrations for current year
+### Endpoint
+**POST** `/admin/register-center`
 
-**Response:**
+### Description
+Allows admins to register new centers with complete details. Centers registered by admins are automatically approved.
+
+### Authentication Required
+- JWT Token with Admin role
+
+### Request Body
+The request body should follow the complete center registration structure:
+
 ```json
 {
-  "status": true,
-  "message": "Admin dashboard data retrieved successfully",
-  "data": {
-    "totalStudents": 150,
-    "recentRegistrations": 12,
-    "studentsByFaculty": [
-      {
-        "_id": "Engineering",
-        "count": 75
-      }
-    ],
-    "studentsByCourse": [
-      {
-        "_id": "Computer Science",
-        "count": 45
-      }
-    ],
-    "studentsBySession": [
-      {
-        "_id": "2024-2025",
-        "count": 120
-      }
-    ],
-    "monthlyRegistrations": [
-      {
-        "_id": 1,
-        "count": 15
-      }
+  "centerDetails": {
+    "centerName": "ABC Learning Center",
+    "centerCode": "ALC001",
+    "centerType": "Educational Institute",
+    "yearOfEstablishment": 2020,
+    "fullAddress": "123 Main Street, Near City Mall",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pinCode": "400001",
+    "officialEmailId": "info@abclearning.com",
+    "primaryContactNo": "9876543210",
+    "alternateContactNo": "9876543211",
+    "website": "https://www.abclearning.com"
+  },
+  "authorizedPersonDetails": {
+    "name": "John Doe",
+    "designation": "Director",
+    "contactNo": "9876543210",
+    "emailId": "john.doe@abclearning.com",
+    "aadhaarIdProofNo": "1234-5678-9012",
+    "photographUrl": "uploads/photographs/john_doe.jpg"
+  },
+  "infrastructureDetails": {
+    "numberOfClassrooms": 10,
+    "numberOfComputers": 50,
+    "internetFacility": true,
+    "seatingCapacity": 200,
+    "infrastructurePhotosUrls": [
+      "uploads/infrastructure/classroom1.jpg",
+      "uploads/infrastructure/computer_lab.jpg"
     ]
+  },
+  "bankDetails": {
+    "bankName": "State Bank of India",
+    "accountHolderName": "ABC Learning Center",
+    "accountNumber": "1234567890123456",
+    "ifscCode": "SBIN0001234",
+    "branchName": "Mumbai Main Branch",
+    "cancelledChequeUrl": "uploads/bank/cancelled_cheque.jpg"
+  },
+  "documentUploads": {
+    "registrationGstCertificateUrl": "uploads/documents/registration_certificate.pdf",
+    "panCardUrl": "uploads/documents/pan_card.pdf",
+    "addressProofUrl": "uploads/documents/address_proof.pdf",
+    "directorIdProofUrl": "uploads/documents/director_id_proof.pdf"
+  },
+  "loginCredentials": {
+    "username": "abclearning_admin",
+    "password": "SecurePassword123",
+    "confirmPassword": "SecurePassword123"
+  },
+  "declaration": {
+    "declaration": true,
+    "signatureUrl": "uploads/signatures/director_signature.jpg"
   }
 }
 ```
 
-#### 3. List All Students
-```http
-GET /student/
-```
-Retrieves a paginated list of all students with optional filtering.
-
-**Query Parameters:**
-- `page` (optional): Page number (default: 1)
-- `limit` (optional): Items per page (default: 10)
-- `search` (optional): Search term for name, registration number, email, or phone
-- `faculty` (optional): Filter by faculty
-- `course` (optional): Filter by course
-- `session` (optional): Filter by session
-
-**Example:**
-```http
-GET /student/?page=1&limit=10&search=john&faculty=Engineering
-```
-
-**Response:**
+### Response
+**Success (201 Created):**
 ```json
 {
   "status": true,
-  "message": "Students retrieved successfully",
+  "message": "Center registered successfully by admin",
   "data": {
-    "students": [
-      {
-        "registrationNo": "123456789012",
-        "candidateName": "John Doe",
-        "emailAddress": "john.doe@example.com",
-        "contactNumber": "9876543210",
-        "faculty": "Engineering",
-        "course": "Computer Science",
-        "stream": "IT",
-        "session": "2024-2025",
-        "year": "1st Year",
-        "createdAt": "2024-01-15T10:30:00.000Z"
-      }
-    ],
-    "pagination": {
-      "currentPage": 1,
-      "totalPages": 15,
-      "totalCount": 150,
-      "limit": 10,
-      "hasNextPage": true,
-      "hasPrevPage": false
-    }
+    "id": "center_1703123456789_abc123def",
+    "centerDetails": { ... },
+    "authorizedPersonDetails": { ... },
+    "infrastructureDetails": { ... },
+    "bankDetails": { ... },
+    "documentUploads": { ... },
+    "loginCredentials": { ... },
+    "declaration": { ... },
+    "status": "approved",
+    "createdAt": "2023-12-21T10:30:00.000Z",
+    "updatedAt": "2023-12-21T10:30:00.000Z"
   }
 }
 ```
 
-#### 4. Get Student Details
-```http
-GET /admin/students/:registrationNo
-```
-Retrieves detailed information for a specific student.
-
-**Path Parameters:**
-- `registrationNo`: Student's registration number
-
-**Example:**
-```http
-GET /admin/students/123456789012
-```
-
-**Response:**
-```json
-{
-  "status": true,
-  "message": "Student details retrieved successfully",
-  "data": {
-    "registrationNo": "123456789012",
-    "candidateName": "John Doe",
-    "motherName": "Jane Doe",
-    "fatherName": "Robert Doe",
-    "gender": "Male",
-    "dateOfBirth": "2000-01-15",
-    "adharCardNo": "123456789012",
-    "category": "General",
-    "contactNumber": "9876543210",
-    "emailAddress": "john.doe@example.com",
-    "faculty": "Engineering",
-    "course": "Computer Science",
-    "stream": "IT",
-    "session": "2024-2025",
-    "createdAt": "2024-01-15T10:30:00.000Z"
-  }
-}
-```
-
-## Error Responses
-
-All endpoints return consistent error responses:
-
+**Error (400 Bad Request):**
 ```json
 {
   "status": false,
-  "message": "Error description",
-  "error": "Detailed error message"
+  "message": "Center name is required",
+  "error": "Center name is required"
 }
 ```
 
-Common HTTP status codes:
-- `200`: Success
-- `400`: Bad Request (validation errors)
-- `401`: Unauthorized (missing/invalid token)
-- `403`: Forbidden (insufficient permissions)
-- `404`: Not Found (student not found)
-- `500`: Internal Server Error
+### Key Features
+1. **Admin-Only Access**: Only users with admin role can register centers
+2. **Automatic Approval**: Centers registered by admins are automatically set to "approved" status
+3. **Complete Validation**: All validation rules from the center service are applied
+4. **Comprehensive Data**: Supports all center registration fields including documents and infrastructure
 
-## Features
+### Validation Rules
+- **Email**: Must be valid email format
+- **Phone Numbers**: Must be 10-digit Indian mobile numbers starting with 6-9
+- **PIN Code**: Must be 6-digit numeric code
+- **IFSC Code**: Must be valid IFSC format (4 letters + 0 + 6 alphanumeric)
+- **Password**: Minimum 6 characters and must match confirm password
+- **Year of Establishment**: Must be between 1900 and current year
+- **Declaration**: Must be accepted (true)
 
-### Search Functionality
-The list students endpoint supports comprehensive search across:
-- Student name
-- Registration number
-- Email address
-- Contact number
+### Error Handling
+The API returns appropriate HTTP status codes:
+- `201`: Center created successfully
+- `400`: Validation error or bad request
+- `401`: Unauthorized (invalid/missing token)
+- `403`: Forbidden (non-admin user)
+- `500`: Internal server error
 
-### Filtering
-Multiple filters can be applied simultaneously:
-- Faculty
-- Course
-- Session
+### Usage Example
+```javascript
+// Frontend example
+const registerCenter = async (centerData) => {
+  try {
+    const response = await fetch('/admin/register-center', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify(centerData)
+    });
+    
+    const result = await response.json();
+    if (result.status) {
+      console.log('Center registered successfully:', result.data);
+    } else {
+      console.error('Registration failed:', result.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+```
 
-### Pagination
-- Configurable page size
-- Navigation metadata (hasNextPage, hasPrevPage)
-- Total count information
-
-### Dashboard Analytics
-- Real-time statistics
-- Faculty-wise distribution
-- Course-wise distribution
-- Session-wise distribution
-- Monthly registration trends
-- Recent registration activity
+## Security Notes
+- All admin routes are protected with authentication and authorization middleware
+- Centers registered by admins bypass the approval workflow
+- Admin tokens should be securely stored and transmitted
+- All validation is performed server-side for security

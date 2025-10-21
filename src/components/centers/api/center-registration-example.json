@@ -1,0 +1,57 @@
+{
+  "centerDetails": {
+    "centerName": "ABC Learning Center",
+    "centerCode": "ALC001",
+    "centerType": "Educational Institute",
+    "yearOfEstablishment": 2020,
+    "fullAddress": "123 Main Street, Near City Mall",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pinCode": "400001",
+    "officialEmailId": "info@abclearning.com",
+    "primaryContactNo": "9876543210",
+    "alternateContactNo": "9876543211",
+    "website": "https://www.abclearning.com"
+  },
+  "authorizedPersonDetails": {
+    "name": "John Doe",
+    "designation": "Director",
+    "contactNo": "9876543210",
+    "emailId": "john.doe@abclearning.com",
+    "aadhaarIdProofNo": "1234-5678-9012",
+    "photographUrl": "uploads/photographs/john_doe.jpg"
+  },
+  "infrastructureDetails": {
+    "numberOfClassrooms": 10,
+    "numberOfComputers": 50,
+    "internetFacility": true,
+    "seatingCapacity": 200,
+    "infrastructurePhotosUrls": [
+      "uploads/infrastructure/classroom1.jpg",
+      "uploads/infrastructure/computer_lab.jpg"
+    ]
+  },
+  "bankDetails": {
+    "bankName": "State Bank of India",
+    "accountHolderName": "ABC Learning Center",
+    "accountNumber": "1234567890123456",
+    "ifscCode": "SBIN0001234",
+    "branchName": "Mumbai Main Branch",
+    "cancelledChequeUrl": "uploads/bank/cancelled_cheque.jpg"
+  },
+  "documentUploads": {
+    "registrationGstCertificateUrl": "uploads/documents/registration_certificate.pdf",
+    "panCardUrl": "uploads/documents/pan_card.pdf",
+    "addressProofUrl": "uploads/documents/address_proof.pdf",
+    "directorIdProofUrl": "uploads/documents/director_id_proof.pdf"
+  },
+  "loginCredentials": {
+    "username": "abclearning_admin",
+    "password": "SecurePassword123",
+    "confirmPassword": "SecurePassword123"
+  },
+  "declaration": {
+    "declaration": true,
+    "signatureUrl": "uploads/signatures/director_signature.jpg"
+  }
+}
