@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { sendResponse } from '../../../utils/response.util.js';
 import centerService from '../services/center.service.js';
-import { CreateCenterRequest, UpdateCenterRequest, CenterSearchFilters } from '../models/center.model';
+import { CreateCenterRequest, UpdateCenterRequest, CenterSearchFilters } from '../models/center.model.js';
 
 const centerListAutoCompleteController = async (req: Request, res: Response): Promise<Response> => {
  try {

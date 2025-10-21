@@ -1,5 +1,5 @@
 
-import centerData from '../api/center.json';
+import centerData from '../api/center.json' with { type: 'json' };
 import { 
   CenterModel, 
   CreateCenterRequest, 
