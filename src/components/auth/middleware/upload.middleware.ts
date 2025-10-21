@@ -32,6 +32,16 @@ export const uploadStudentFiles = multer({
     }
 });
 
+// Configure multer for center file uploads
+export const uploadCenterFiles = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        cb(null, true);
+    }
+});
 
 export const multerErrorHandler = (error: any, req: any, res: any, next: any) => {
     if (error instanceof multer.MulterError) {

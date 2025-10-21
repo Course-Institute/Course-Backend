@@ -24,12 +24,12 @@ const createCenter = async (centerData: CreateCenterRequest): Promise<CenterMode
         
         // Check if center with same email already exists
         const existingCentersResult = await centerDal.getAllCentersDal({ 
-            query: centerData.centerDetails.officialEmailId, 
+            query: centerData.centerDetails.officialEmail, 
             limit: 1, 
             pageNumber: 1 
         });
         const emailExists = existingCentersResult.centers.some(center => 
-            center.centerDetails.officialEmailId === centerData.centerDetails.officialEmailId
+            center.centerDetails.officialEmail === centerData.centerDetails.officialEmail
         );
         
         if (emailExists) {
@@ -38,12 +38,12 @@ const createCenter = async (centerData: CreateCenterRequest): Promise<CenterMode
 
         // Check if authorized person email already exists
         const existingAuthorizedPersonResult = await centerDal.getAllCentersDal({ 
-            query: centerData.authorizedPersonDetails.emailId, 
+            query: centerData.authorizedPersonDetails.email, 
             limit: 1, 
             pageNumber: 1 
         });
         const usernameExists = existingAuthorizedPersonResult.centers.some(center => 
-            center.authorizedPersonDetails.emailId === centerData.authorizedPersonDetails.emailId
+            center.authorizedPersonDetails.email === centerData.authorizedPersonDetails.email
         );
         
         if (usernameExists) {

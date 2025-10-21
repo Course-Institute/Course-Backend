@@ -5,52 +5,57 @@ export interface CenterDetails {
   centerCode?: string;
   centerType: string;
   yearOfEstablishment: number;
-  fullAddress: string;
+  address: string;
   city: string;
   state: string;
   pinCode: string;
-  officialEmailId: string;
+  officialEmail: string;
   primaryContactNo: string;
   alternateContactNo?: string;
   website?: string;
 }
 
 export interface AuthorizedPersonDetails {
-  name: string;
+  authName: string;
   designation: string;
   contactNo: string;
-  emailId: string;
-  aadhaarIdProofNo: string;
-  photographUrl?: string;
+  email: string;
+  idProofNo: string;
+  photo?: string;
 }
 
 export interface InfrastructureDetails {
-  numberOfClassrooms: number;
-  numberOfComputers: number;
+  numClassrooms: number;
+  numComputers: number;
   internetFacility: boolean;
   seatingCapacity: number;
-  infrastructurePhotosUrls?: string[];
+  infraPhotos?: string[];
 }
 
 export interface BankDetails {
   bankName: string;
-  accountHolderName: string;
+  accountHolder: string;
   accountNumber: string;
-  ifscCode: string;
+  ifsc: string;
   branchName: string;
-  cancelledChequeUrl?: string;
+  cancelledCheque?: string;
 }
 
 export interface DocumentUploads {
-  registrationGstCertificateUrl?: string;
-  panCardUrl?: string;
-  addressProofUrl?: string;
-  directorIdProofUrl?: string;
+  gstCertificate?: string;
+  panCard?: string;
+  addressProof?: string;
+  directorIdProof?: string;
 }
 
 export interface CenterDeclaration {
   declaration: boolean;
   signatureUrl?: string;
+}
+
+export interface loginCredentials {
+  username: string;
+  password: string;
 }
 
 export interface CenterModel {
@@ -124,11 +129,11 @@ const centerDetailsSchema = new Schema<CenterDetails>(
     centerCode: { type: String, required: false },
     centerType: { type: String, required: true },
     yearOfEstablishment: { type: Number, required: true },
-    fullAddress: { type: String, required: true },
+    address: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
     pinCode: { type: String, required: true },
-    officialEmailId: { type: String, required: true },
+    officialEmail: { type: String, required: true },
     primaryContactNo: { type: String, required: true },
     alternateContactNo: { type: String, required: false },
     website: { type: String, required: false },
@@ -138,23 +143,23 @@ const centerDetailsSchema = new Schema<CenterDetails>(
 
 const authorizedPersonDetailsSchema = new Schema<AuthorizedPersonDetails>(
   {
-    name: { type: String, required: true },
+    authName: { type: String, required: true },
     designation: { type: String, required: true },
     contactNo: { type: String, required: true },
-    emailId: { type: String, required: true },
-    aadhaarIdProofNo: { type: String, required: true },
-    photographUrl: { type: String, required: false },
+    email: { type: String, required: true },
+    idProofNo: { type: String, required: true },
+    photo: { type: String, required: false },
   },
   { _id: false }
 );
 
 const infrastructureDetailsSchema = new Schema<InfrastructureDetails>(
   {
-    numberOfClassrooms: { type: Number, required: true },
-    numberOfComputers: { type: Number, required: true },
+    numClassrooms: { type: Number, required: true },
+    numComputers: { type: Number, required: true },
     internetFacility: { type: Boolean, required: true },
     seatingCapacity: { type: Number, required: true },
-    infrastructurePhotosUrls: { type: [String], required: false },
+    infraPhotos: { type: [String], required: false },
   },
   { _id: false }
 );
@@ -162,21 +167,29 @@ const infrastructureDetailsSchema = new Schema<InfrastructureDetails>(
 const bankDetailsSchema = new Schema<BankDetails>(
   {
     bankName: { type: String, required: true },
-    accountHolderName: { type: String, required: true },
+    accountHolder: { type: String, required: true },
     accountNumber: { type: String, required: true },
-    ifscCode: { type: String, required: true },
+    ifsc: { type: String, required: true },
     branchName: { type: String, required: true },
-    cancelledChequeUrl: { type: String, required: false },
+    cancelledCheque: { type: String, required: false },
   },
   { _id: false }
 );
 
 const documentUploadsSchema = new Schema<DocumentUploads>(
   {
-    registrationGstCertificateUrl: { type: String, required: false },
-    panCardUrl: { type: String, required: false },
-    addressProofUrl: { type: String, required: false },
-    directorIdProofUrl: { type: String, required: false },
+    gstCertificate: { type: String, required: false },
+    panCard: { type: String, required: false },
+    addressProof: { type: String, required: false },
+    directorIdProof: { type: String, required: false },
+  },
+  { _id: false }
+);
+
+const loginCredentialsSchema = new Schema<loginCredentials>(
+  {
+    username: { type: String, required: true },
+    password: { type: String, required: true },
   },
   { _id: false }
 );

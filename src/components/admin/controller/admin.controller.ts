@@ -130,6 +130,12 @@ const approveStudentController = async (req: Request, res: Response): Promise<Re
 const registerCenterController = async (req: Request, res: Response): Promise<Response> => {
     try {
         const centerData: CreateCenterRequest = req.body;
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        
+        // Remove centerCode from request data since it will be auto-generated
+        if (centerData.centerDetails && centerData.centerDetails.centerCode) {
+            delete centerData.centerDetails.centerCode;
+        }
         
         // Validate required fields
         if (!centerData.centerDetails || !centerData.centerDetails.centerName) {
@@ -141,13 +147,53 @@ const registerCenterController = async (req: Request, res: Response): Promise<Re
             });
         }
 
-        if (!centerData.centerDetails.officialEmailId) {
+        if (!centerData.centerDetails.officialEmail) {
             return sendResponse({
                 res,
                 statusCode: 400,
                 status: false,
                 message: 'Official email ID is required',
             });
+        }
+
+        // Process uploaded files and update centerData with file paths
+        if (files) {
+            // Handle authorized person photo
+            if (files.authorizedPersonPhoto && files.authorizedPersonPhoto[0]) {
+                centerData.authorizedPersonDetails.photo = files.authorizedPersonPhoto[0].filename;
+            }
+
+            // Handle infrastructure photos
+            if (files.infraPhotos && files.infraPhotos.length > 0) {
+                centerData.infrastructureDetails.infraPhotos = files.infraPhotos.map(file => file.filename);
+            }
+
+            // Handle bank details - cancelled cheque
+            if (files.cancelledCheque && files.cancelledCheque[0]) {
+                centerData.bankDetails.cancelledCheque = files.cancelledCheque[0].filename;
+            }
+
+            // Handle document uploads
+            if (files.gstCertificate && files.gstCertificate[0]) {
+                centerData.documentUploads.gstCertificate = files.gstCertificate[0].filename;
+            }
+
+            if (files.panCard && files.panCard[0]) {
+                centerData.documentUploads.panCard = files.panCard[0].filename;
+            }
+
+            if (files.addressProof && files.addressProof[0]) {
+                centerData.documentUploads.addressProof = files.addressProof[0].filename;
+            }
+
+            if (files.directorIdProof && files.directorIdProof[0]) {
+                centerData.documentUploads.directorIdProof = files.directorIdProof[0].filename;
+            }
+
+            // Handle signature
+            if (files.signature && files.signature[0]) {
+                centerData.declaration.signatureUrl = files.signature[0].filename;
+            }
         }
 
         const result = await adminService.registerCenterService(centerData);

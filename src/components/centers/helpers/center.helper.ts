@@ -14,8 +14,8 @@ const validateCenterData = (data: CreateCenterRequest): void => {
     if (!centerDetails.yearOfEstablishment || centerDetails.yearOfEstablishment < 1900 || centerDetails.yearOfEstablishment > new Date().getFullYear()) {
         throw new Error('Valid year of establishment is required');
     }
-    if (!centerDetails.fullAddress?.trim()) {
-        throw new Error('Full address is required');
+    if (!centerDetails.address?.trim()) {
+        throw new Error('Address is required');
     }
     if (!centerDetails.city?.trim()) {
         throw new Error('City is required');
@@ -26,7 +26,7 @@ const validateCenterData = (data: CreateCenterRequest): void => {
     if (!centerDetails.pinCode?.trim() || !/^\d{6}$/.test(centerDetails.pinCode)) {
         throw new Error('Valid 6-digit PIN code is required');
     }
-    if (!centerDetails.officialEmailId?.trim() || !isValidEmail(centerDetails.officialEmailId)) {
+    if (!centerDetails.officialEmail?.trim() || !isValidEmail(centerDetails.officialEmail)) {
         throw new Error('Valid official email is required');
     }
     if (!centerDetails.primaryContactNo?.trim() || !isValidPhoneNumber(centerDetails.primaryContactNo)) {
@@ -34,7 +34,7 @@ const validateCenterData = (data: CreateCenterRequest): void => {
     }
 
     // Validate authorized person details
-    if (!authorizedPersonDetails.name?.trim()) {
+    if (!authorizedPersonDetails.authName?.trim()) {
         throw new Error('Authorized person name is required');
     }
     if (!authorizedPersonDetails.designation?.trim()) {
@@ -43,18 +43,18 @@ const validateCenterData = (data: CreateCenterRequest): void => {
     if (!authorizedPersonDetails.contactNo?.trim() || !isValidPhoneNumber(authorizedPersonDetails.contactNo)) {
         throw new Error('Valid contact number is required');
     }
-    if (!authorizedPersonDetails.emailId?.trim() || !isValidEmail(authorizedPersonDetails.emailId)) {
+    if (!authorizedPersonDetails.email?.trim() || !isValidEmail(authorizedPersonDetails.email)) {
         throw new Error('Valid email ID is required');
     }
-    if (!authorizedPersonDetails.aadhaarIdProofNo?.trim()) {
+    if (!authorizedPersonDetails.idProofNo?.trim()) {
         throw new Error('Aadhaar/ID proof number is required');
     }
 
     // Validate infrastructure details
-    if (!infrastructureDetails.numberOfClassrooms || infrastructureDetails.numberOfClassrooms < 0) {
+    if (!infrastructureDetails.numClassrooms || infrastructureDetails.numClassrooms < 0) {
         throw new Error('Valid number of classrooms is required');
     }
-    if (!infrastructureDetails.numberOfComputers || infrastructureDetails.numberOfComputers < 0) {
+    if (!infrastructureDetails.numComputers || infrastructureDetails.numComputers < 0) {
         throw new Error('Valid number of computers is required');
     }
     if (infrastructureDetails.seatingCapacity === undefined || infrastructureDetails.seatingCapacity < 0) {
@@ -65,13 +65,13 @@ const validateCenterData = (data: CreateCenterRequest): void => {
     if (!bankDetails.bankName?.trim()) {
         throw new Error('Bank name is required');
     }
-    if (!bankDetails.accountHolderName?.trim()) {
+    if (!bankDetails.accountHolder?.trim()) {
         throw new Error('Account holder name is required');
     }
     if (!bankDetails.accountNumber?.trim()) {
         throw new Error('Account number is required');
     }
-    if (!bankDetails.ifscCode?.trim() || !isValidIFSC(bankDetails.ifscCode)) {
+    if (!bankDetails.ifsc?.trim() || !isValidIFSC(bankDetails.ifsc)) {
         throw new Error('Valid IFSC code is required');
     }
     if (!bankDetails.branchName?.trim()) {
@@ -85,7 +85,7 @@ const validateCenterData = (data: CreateCenterRequest): void => {
 
 const validateUpdateCenterData = (data: UpdateCenterRequest): void => {
     // Validate email format if provided
-    if (data.centerDetails?.officialEmailId && !isValidEmail(data.centerDetails.officialEmailId)) {
+    if (data.centerDetails?.officialEmail && !isValidEmail(data.centerDetails.officialEmail)) {
         throw new Error('Valid official email is required');
     }
     
@@ -97,8 +97,8 @@ const validateUpdateCenterData = (data: UpdateCenterRequest): void => {
     if (data.authorizedPersonDetails?.contactNo && !isValidPhoneNumber(data.authorizedPersonDetails.contactNo)) {
         throw new Error('Valid contact number is required');
     }
-    
-    if (data.authorizedPersonDetails?.emailId && !isValidEmail(data.authorizedPersonDetails.emailId)) {
+
+    if (data.authorizedPersonDetails?.email && !isValidEmail(data.authorizedPersonDetails.email)) {
         throw new Error('Valid email ID is required');
     }
     
@@ -108,7 +108,7 @@ const validateUpdateCenterData = (data: UpdateCenterRequest): void => {
     }
     
     // Validate IFSC code if provided
-    if (data.bankDetails?.ifscCode && !isValidIFSC(data.bankDetails.ifscCode)) {
+    if (data.bankDetails?.ifsc && !isValidIFSC(data.bankDetails.ifsc)) {
         throw new Error('Valid IFSC code is required');
     }
 }
