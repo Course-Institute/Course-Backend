@@ -1,4 +1,4 @@
-import centerDal from '../dals/center.dal';
+import centerDal from '../dals/center.dal.js';
 import { 
     CreateCenterRequest, 
     UpdateCenterRequest, 
