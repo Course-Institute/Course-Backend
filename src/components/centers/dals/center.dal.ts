@@ -1,5 +1,4 @@
 
-import centerData from '../api/center.json' with { type: 'json' };
 import { 
   CenterModel, 
   CreateCenterRequest, 
@@ -7,7 +6,7 @@ import {
   CenterSearchFilters,
   CenterListResponse, 
   ICenter
-} from '../models/center.model';
+} from '../models/center.model.js';
 
 // In-memory storage for demo purposes - replace with actual database operations
 let centersStorage: CenterModel[] = [];
