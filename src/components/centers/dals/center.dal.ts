@@ -5,7 +5,8 @@ import {
   CreateCenterRequest, 
   UpdateCenterRequest, 
   CenterSearchFilters,
-  CenterListResponse 
+  CenterListResponse, 
+  ICenter
 } from '../models/center.model';
 
 // In-memory storage for demo purposes - replace with actual database operations
@@ -14,24 +15,7 @@ let centersStorage: CenterModel[] = [];
 const centerListAutoCompleteDal = async (query: string) => {
   try {
     const limit = 20;
-    // If no query provided, return all centers
-    if (!query || query.trim() === "") {
-      return centerData
-        .slice(0, limit)
-        .map((center) => ({ name: center.centerName, centerId: center.id }));
-    }
-
-    // Filter centers by name (case-insensitive)
-    const filteredCenters = centerData
-      .slice(0, limit)
-      .filter((center) =>
-        center.centerName.toLowerCase().includes(query.toLowerCase())
-      );
-
-    // Return only the name field as expected by the API
-    return filteredCenters
-      .slice(0, limit)
-      .map((center) => ({ name: center.centerName, centerId: center.id }));
+    
   } catch (error) {
     console.log(error);
     throw error;
@@ -40,30 +24,22 @@ const centerListAutoCompleteDal = async (query: string) => {
 
 const createCenterDal = async (centerData: CreateCenterRequest): Promise<CenterModel> => {
   try {
-    // Validate password confirmation
-    if (centerData.loginCredentials.password !== centerData.loginCredentials.confirmPassword) {
-      throw new Error('Password and confirm password do not match');
-    }
 
     // Generate unique ID
-    const id = `center_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    centerData.centerDetails.centerCode = `MIV-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`; //generates a random 5 digit number
     
     const newCenter: CenterModel = {
-      id,
       centerDetails: centerData.centerDetails,
       authorizedPersonDetails: centerData.authorizedPersonDetails,
       infrastructureDetails: centerData.infrastructureDetails,
       bankDetails: centerData.bankDetails,
       documentUploads: centerData.documentUploads,
-      loginCredentials: centerData.loginCredentials,
       declaration: centerData.declaration,
       status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date()
     };
-
-    centersStorage.push(newCenter);
-    return newCenter;
+    return await CenterModel.create(newCenter);
   } catch (error) {
     console.log(error);
     throw error;
@@ -180,9 +156,61 @@ const searchCentersDal = async (filters: CenterSearchFilters): Promise<CenterLis
   }
 };
 
-const getAllCentersDal = async (): Promise<CenterModel[]> => {
+const getAllCentersDal = async ({ 
+  query, 
+  limit = 10, 
+  pageNumber = 1, 
+  skip = 0
+}: { 
+  query?: string; 
+  limit?: number; 
+  pageNumber?: number; 
+  skip?: number;
+}): Promise<{ centers: ICenter[]; totalCount: number; hasMore: boolean }> => {
   try {
-    return centersStorage;
+    // Build filter object for MongoDB query
+    const filter: any = {};
+    
+    // Handle search query with regex across multiple fields
+    if (query) {
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
+      const regexSearch = new RegExp(escapedQuery, 'i');
+      
+      filter.$or = [
+        { 'centerDetails.centerName': regexSearch },
+        { 'centerDetails.centerCode': regexSearch },
+        { 'centerDetails.centerType': regexSearch },
+        { 'centerDetails.city': regexSearch },
+        { 'centerDetails.state': regexSearch },
+        { 'centerDetails.pinCode': regexSearch },
+        { 'centerDetails.officialEmailId': regexSearch },
+        { 'authorizedPersonDetails.name': regexSearch },
+        { 'authorizedPersonDetails.emailId': regexSearch },
+        { 'status': regexSearch } // Also search in status field
+      ];
+    }
+    
+    // Calculate skip value for infinite scroll
+    const calculatedSkip = skip || (pageNumber - 1) * limit;
+    
+    // Get total count for pagination info
+    const totalCount = await CenterModel.countDocuments(filter);
+    
+    // Fetch centers with pagination
+    const centersList = await CenterModel.find(filter)
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip(calculatedSkip)
+      .limit(limit)
+      .lean();
+    
+    // Check if there are more records
+    const hasMore = calculatedSkip + centersList.length < totalCount;
+    
+    return {
+      centers: centersList,
+      totalCount,
+      hasMore
+    };
   } catch (error) {
     console.log(error);
     throw error;

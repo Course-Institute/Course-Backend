@@ -2,6 +2,7 @@ import { IStudent } from '../../students/model/student.model.js';
 import adminDal from '../dals/admin.dal.js';
 import centerService from '../../centers/services/center.service.js';
 import { CreateCenterRequest, CenterModel } from '../../centers/models/center.model.js';
+import centerDal from '../../centers/dals/center.dal.js';
 
 const listAllStudents = async ({
     page = 1,
@@ -105,10 +106,35 @@ const registerCenterService = async (centerData: CreateCenterRequest): Promise<C
     }
 };
 
+const getAllCentersService = async ({
+  query,
+  limit,
+  pageNumber,
+}: {
+  query?: string;
+  limit?: number;
+  pageNumber?: number;
+}) => {
+  try {
+    const skip = ((pageNumber || 1) - 1) * (limit || 10);
+    const result = await centerDal.getAllCentersDal({
+      query,
+      limit,
+      pageNumber,
+      skip,
+    });
+    return result;
+  } catch (error) {
+    console.log("Error in getAllCentersService:", error);
+    throw error;
+  }
+};
+
 export default {
     listAllStudents,
     getStudentDetails,
     getDashboardData,
     approveStudentService,
     registerCenterService,
+    getAllCentersService,
 };

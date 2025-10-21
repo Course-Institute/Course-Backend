@@ -11,7 +11,6 @@ router.post('/create', centerController.createCenterController);
 router.get('/:centerId', centerController.getCenterByIdController);
 router.put('/:centerId', centerController.updateCenterController);
 router.delete('/:centerId', centerController.deleteCenterController);
-router.get('/', centerController.getAllCentersController);
 router.get('/search', centerController.searchCentersController);
 router.patch('/:centerId/status', centerController.updateCenterStatusController);
 

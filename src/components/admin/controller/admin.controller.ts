@@ -150,15 +150,6 @@ const registerCenterController = async (req: Request, res: Response): Promise<Re
             });
         }
 
-        if (!centerData.loginCredentials || !centerData.loginCredentials.username) {
-            return sendResponse({
-                res,
-                statusCode: 400,
-                status: false,
-                message: 'Username is required',
-            });
-        }
-
         const result = await adminService.registerCenterService(centerData);
         
         return sendResponse({
@@ -179,10 +170,38 @@ const registerCenterController = async (req: Request, res: Response): Promise<Re
     }
 }
 
+const getAllCentersController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const {query, limit, pageNumber} = req.body;
+        const centers = await adminService.getAllCentersService({query, limit, pageNumber});
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'All centers retrieved successfully',
+            data: centers
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: 'Failed to retrieve centers',
+            error: error.message
+        });
+    }
+}
+
+// const approveCenterController = async (req: Request, res: Response): Promise<Response> => {
+
+// }
+
 export default {
     listAllStudentsController,
     getStudentDetailsController,
     getAdminDashboardController,
     approveStudentController,
     registerCenterController,
+    getAllCentersController,
+    // approveCenterController,
 };

@@ -21,5 +21,7 @@ router.post('/approve-student', adminController.approveStudentController);
 
 // Center management routes (admin only)
 router.post('/register-center', adminController.registerCenterController);
+router.post('/getAllCentersList', adminController.getAllCentersController);
+// router.post('/approve-center', adminController.approveCenterController);
 
 export default router;

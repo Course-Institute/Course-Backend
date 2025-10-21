@@ -171,28 +171,6 @@ const searchCentersController = async (req: Request, res: Response): Promise<Res
     }
 }
 
-const getAllCentersController = async (req: Request, res: Response): Promise<Response> => {
-    try {
-        const result = await centerService.getAllCenters();
-        
-        return sendResponse({
-            res,
-            statusCode: 200,
-            status: true,
-            message: 'All centers retrieved successfully',
-            data: result
-        });
-    } catch (error: any) {
-        return sendResponse({
-            res,
-            statusCode: 500,
-            status: false,
-            message: error.message || 'Failed to retrieve centers',
-            error: error.message
-        });
-    }
-}
-
 const updateCenterStatusController = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { centerId } = req.params;
@@ -245,6 +223,5 @@ export default {
     updateCenterController,
     deleteCenterController,
     searchCentersController,
-    getAllCentersController,
     updateCenterStatusController
 };
