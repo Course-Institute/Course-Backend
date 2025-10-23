@@ -57,6 +57,7 @@ const createCenterDal = async (centerData: CreateCenterRequest): Promise<CenterM
       bankDetails: centerData.bankDetails,
       documentUploads: centerData.documentUploads,
       declaration: centerData.declaration,
+      loginCredentials: centerData.loginCredentials,
       status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date()

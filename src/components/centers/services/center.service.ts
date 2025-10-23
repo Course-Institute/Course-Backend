@@ -1,5 +1,7 @@
 import centerDal from '../dals/center.dal.js';
 import centerHelper from '../helpers/center.helper.js';
+import userDal from '../../users/dals/user.dal.js';
+import bcrypt from 'bcryptjs';
 import { 
     CreateCenterRequest, 
     UpdateCenterRequest, 
@@ -50,7 +52,37 @@ const createCenter = async (centerData: CreateCenterRequest): Promise<CenterMode
             throw new Error('Authorized person email already exists');
         }
 
+        // Check if user with same email already exists in users collection
+        const existingUser = await userDal.checkUserExists(centerData.authorizedPersonDetails.email);
+        if (existingUser) {
+            throw new Error('User with this email already exists');
+        }
+
+        // Create the center first
         const result = await centerDal.createCenterDal(centerData);
+        
+        // Create user account for the center using loginCredentials
+        if (result && result.loginCredentials) {
+            try {
+                // Hash the password
+                const hashedPassword = await bcrypt.hash(result.loginCredentials.password, 12);
+                
+                // Create user with center role
+                await userDal.createCenterUser({
+                    name: result.authorizedPersonDetails.authName,
+                    email: result.authorizedPersonDetails.email,
+                    password: hashedPassword
+                });
+                
+                console.log('User account created successfully for center:', result.centerDetails.centerName);
+            } catch (userError) {
+                console.error('Failed to create user account for center:', userError);
+                // Optionally, you might want to delete the created center if user creation fails
+                // await centerDal.deleteCenterDal(result.id);
+                // throw new Error('Failed to create user account for center');
+            }
+        }
+
         return result;
     } catch (error) {
         console.log(error);

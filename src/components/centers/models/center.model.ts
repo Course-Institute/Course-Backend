@@ -66,6 +66,7 @@ export interface CenterModel {
   bankDetails: BankDetails;
   documentUploads: DocumentUploads;
   declaration: CenterDeclaration;
+  loginCredentials?: loginCredentials;
   status?: "pending" | "approved" | "rejected";
   createdAt?: Date;
   updatedAt?: Date;
@@ -80,6 +81,7 @@ export interface CreateCenterRequest {
   bankDetails: BankDetails;
   documentUploads: DocumentUploads;
   declaration: CenterDeclaration;
+  loginCredentials: loginCredentials;
 }
 
 export interface UpdateCenterRequest {
@@ -115,11 +117,10 @@ interface ICenter extends Document {
   bankDetails: BankDetails;
   documentUploads: DocumentUploads;
   declaration: CenterDeclaration;
+  loginCredentials: loginCredentials;
   status?: "pending" | "approved" | "rejected";
   createdAt?: Date;
   updatedAt?: Date;
-  createdBy?: string;
-  updatedBy?: string;
 }
 
 // Sub-schemas
@@ -217,6 +218,7 @@ const centerSchema = new Schema<ICenter>(
     bankDetails: { type: bankDetailsSchema, required: true },
     documentUploads: { type: documentUploadsSchema, required: true },
     declaration: { type: centerDeclarationSchema, required: true },
+    loginCredentials: { type: loginCredentialsSchema, required: true },
     status: {
       type: String,
       required: false,
@@ -225,8 +227,6 @@ const centerSchema = new Schema<ICenter>(
     },
     createdAt: { type: Date, required: false },
     updatedAt: { type: Date, required: false },
-    createdBy: { type: String, required: false },
-    updatedBy: { type: String, required: false },
   },
   {
     timestamps: true,

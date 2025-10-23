@@ -74,6 +74,19 @@ const createStudentUser = async (data: CreateStudentUserData): Promise<any> => {
         }
     }
 
+const createCenterUser = async (data: RegisterAdminData): Promise<any> => {
+        try {
+            return await UserModel.create({
+                name: data.name,
+                email: data.email,
+                password: data.password,
+                role: 'center'
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
 
 export default { 
         findUserByEmail,
@@ -81,5 +94,6 @@ export default {
         createAdmin,
         findAdminById,
         checkUserExists,
-        createStudentUser
+        createStudentUser,
+        createCenterUser
 }

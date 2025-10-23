@@ -178,10 +178,14 @@ const registerCenterController = async (req: Request, res: Response): Promise<Re
                 addressProof: undefined,
                 directorIdProof: undefined
             },
+            loginCredentials: {
+                username: payload.username,
+                password: payload.password
+            },
             declaration: {
                 declaration: true, // Assuming declaration is always true for admin registration
                 signatureUrl: undefined // Will be set from file upload
-            }
+            },
         };
 
         // Process uploaded files and update centerData with file paths
