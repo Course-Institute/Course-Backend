@@ -11,16 +11,17 @@ import {
 
 const centerListAutoComplete = async ({query}:{query: string}) => {
     try {
-        const result = await centerDal.centerListAutoCompleteDal(query);
-        result.map(center => {
-            return {
-                centerName: center.centerDetails.centerName,
-                centerCode: center.centerDetails.centerCode,
-                centerId: center._id
-            };
-        });
+        const centers = await centerDal.centerListAutoCompleteDal(query);
+        
+        // Transform the data to match frontend requirements
+        const transformedData = centers.map(center => ({
+            id: center._id.toString(),
+            name: center.centerDetails.centerName,
+            centerId: center.centerDetails.centerCode
+        }));
+
         return {
-            centers: result
+            data: transformedData
         };
     } catch (error) {
         console.log(error);
