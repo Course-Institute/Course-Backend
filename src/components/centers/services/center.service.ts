@@ -32,38 +32,42 @@ const createCenter = async (centerData: CreateCenterRequest): Promise<CenterMode
         // Validate required fields
         centerHelper.validateCenterData(centerData);
         
-        // Check if center with same email already exists
-        const existingCentersResult = await centerDal.getAllCentersDal({ 
-            query: centerData.centerDetails.officialEmail, 
-            limit: 1, 
-            pageNumber: 1 
-        });
-        const emailExists = existingCentersResult.centers.some(center => 
-            center.centerDetails.officialEmail === centerData.centerDetails.officialEmail
-        );
+        // Extract all email addresses from the center data
+        const officialEmail = centerData.centerDetails.officialEmail;
+        const authorizedPersonEmail = centerData.authorizedPersonDetails.email;
+        const loginUsername = centerData.loginCredentials.username;
         
-        if (emailExists) {
-            throw new Error('Center with this email already exists');
+        // Check if any email is used in multiple fields within the same registration
+        const emails = [officialEmail, authorizedPersonEmail, loginUsername];
+        const uniqueEmails = [...new Set(emails)];
+        if (emails.length !== uniqueEmails.length) {
+            throw new Error('Same email cannot be used in multiple fields (official email, authorized person email, and login username must be unique)');
+        }
+        
+        // Check if official email already exists in any center
+        const existingOfficialEmail = await centerDal.checkEmailExists(officialEmail);
+        if (existingOfficialEmail) {
+            throw new Error('Center with this official email already exists');
         }
 
-        // Check if authorized person email already exists
-        const existingAuthorizedPersonResult = await centerDal.getAllCentersDal({ 
-            query: centerData.authorizedPersonDetails.email, 
-            limit: 1, 
-            pageNumber: 1 
-        });
-        const usernameExists = existingAuthorizedPersonResult.centers.some(center => 
-            center.authorizedPersonDetails.email === centerData.authorizedPersonDetails.email
-        );
-        
-        if (usernameExists) {
-            throw new Error('Authorized person email already exists');
+        // Check if authorized person email already exists in any center
+        const existingAuthorizedEmail = await centerDal.checkEmailExists(authorizedPersonEmail);
+        if (existingAuthorizedEmail) {
+            throw new Error('Authorized person email already exists in another center');
         }
 
-        // Check if user with same email already exists in users collection
-        const existingUser = await userDal.checkUserExists(centerData.authorizedPersonDetails.email);
-        if (existingUser) {
-            throw new Error('User with this email already exists');
+        // Check if login username already exists in any center
+        const existingLoginUsername = await centerDal.checkEmailExists(loginUsername);
+        if (existingLoginUsername) {
+            throw new Error('Login username already exists in another center');
+        }
+
+        // Check if any of these emails already exist in users collection
+        for (const email of emails) {
+            const existingUser = await userDal.checkUserExists(email);
+            if (existingUser) {
+                throw new Error(`User with email ${email} already exists`);
+            }
         }
 
         // Create the center first

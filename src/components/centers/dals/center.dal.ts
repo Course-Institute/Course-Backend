@@ -259,6 +259,24 @@ const updateCenterStatusDal = async (centerId: string, status: 'pending' | 'appr
   }
 };
 
+const checkEmailExists = async (email: string): Promise<boolean> => {
+  try {
+    // Check if email exists in any of the email fields across all centers
+    const existingCenter = await CenterModel.findOne({
+      $or: [
+        { 'centerDetails.officialEmail': email },
+        { 'authorizedPersonDetails.email': email },
+        { 'loginCredentials.username': email }
+      ]
+    });
+    
+    return !!existingCenter;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 export default { 
   centerListAutoCompleteDal,
   createCenterDal,
@@ -267,5 +285,6 @@ export default {
   deleteCenterDal,
   searchCentersDal,
   getAllCentersDal,
-  updateCenterStatusDal
+  updateCenterStatusDal,
+  checkEmailExists
 };
