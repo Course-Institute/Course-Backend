@@ -24,7 +24,8 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:4000',
       'http://127.0.0.1:4000',
-      'https://mivpsa.in'
+      'https://mivpsa.in',
+      'https://www.mivpsa.in'
     ];
     
     if (allowedOrigins.includes(origin)) {
