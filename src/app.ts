@@ -14,31 +14,35 @@ dotenv.config();
 connectDB();
 
 const app = express();
-
-// CORS configuration for your frontend running on port 3001
-const corsOptions = {
-  origin: [
-    'http://localhost:3001',  // Your current frontend port
-    'http://localhost:4000',  // Alternative frontend port
-    'http://localhost:5173',  // Vite dev server default port
-    'http://127.0.0.1:3001',  // Alternative localhost
-    'https://mivpsa.in'       // Production domain
-  ],
-  credentials: true, // Allow cookies and authorization headers
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'Origin',
-    'X-Requested-With',
-    'Content-Type',
-    'Accept',
-    'Authorization',
-    'Cache-Control',
-    'Pragma'
-  ],
-  optionsSuccessStatus: 200 // For legacy browser support
-};
-
-app.use(cors(corsOptions));
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     // Allow requests with no origin (like mobile apps or curl requests)
+//     if (!origin) return callback(null, true);
+//     console.log("Request Origin:", origin)
+    
+//     // Allow specific ports
+//     const allowedOrigins = [
+//       'http://localhost:4000',
+//       'http://127.0.0.1:4000',
+//       'http://localhost:5173',
+//       'http://127.0.0.1:5173',
+//       'http://localhost:5000',
+//       'http://127.0.0.1:5000'
+//     ];
+    
+//     if (allowedOrigins.includes(origin)) {
+//       return callback(null, true);
+//     }
+    
+//     return callback(new Error('Not allowed by CORS'));
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+//   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
+//   exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+//   credentials: true,
+//   preflightContinue: false,
+//   optionsSuccessStatus: 200
+// }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
