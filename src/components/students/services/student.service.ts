@@ -1,6 +1,8 @@
 import studentDal from "../dals/student.dal.js";
 import userDal from "../../users/dals/user.dal.js";
 import bcrypt from "bcryptjs";
+import { IStudent } from "../model/student.model.js";
+import mongoose from "mongoose";
 
 const addStudent = async ({
     candidateName,
@@ -36,7 +38,8 @@ const addStudent = async ({
     aadharFront,
     aadharBack,
     photo,
-    signature
+    signature,
+    centerId
 }:{
     candidateName?: string, 
     motherName?: string, 
@@ -71,8 +74,9 @@ const addStudent = async ({
     aadharFront?: Express.Multer.File, 
     aadharBack?: Express.Multer.File, 
     photo?: Express.Multer.File, 
-    signature?: Express.Multer.File
-}) => {
+    signature?: Express.Multer.File,
+    centerId?: string
+}): Promise<IStudent> => {
     try {
         // Create student record
         const student = await studentDal.addStudentDal({
@@ -109,7 +113,8 @@ const addStudent = async ({
             aadharFront: aadharFront?.filename ? `/uploads/${aadharFront.filename}` : '', 
             aadharBack: aadharBack?.filename ? `/uploads/${aadharBack.filename}` : '', 
             photo: photo?.filename ? `/uploads/${photo.filename}` : '', 
-            signature: signature?.filename ? `/uploads/${signature.filename}` : ''
+            signature: signature?.filename ? `/uploads/${signature.filename}` : '',
+            centerId: centerId
         });
 
         // Check if user with this email already exists
@@ -140,7 +145,7 @@ const addStudent = async ({
             faculty: student.faculty,
             session: student.session,
             createdAt: student.createdAt
-        };
+        } as IStudent;
     } catch (error) {
         console.log(error);
         throw error;

@@ -35,6 +35,7 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             session,
             duration,
             courseFee,
+            centerId,
         } = req.body;
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
         
@@ -47,7 +48,7 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             motherName,
             fatherName,
             gender,
-            dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, faculty, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature
+            dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, faculty, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature, centerId
         });
         return sendResponse({
             res,

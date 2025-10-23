@@ -32,7 +32,7 @@ const centerListAutoCompleteDal = async (query: string) => {
     }
 
     // Query MongoDB
-    const centers = await CenterModel.find(filter)
+    const centers = await CenterModel.find(filter).select('centerDetails.centerName centerDetails.centerCode _id')
       .limit(limit)
       .lean();
 

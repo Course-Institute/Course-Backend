@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { UserModel } from "../../users/models/user.model.js";
 import { IStudent, StudentModel } from "../model/student.model.js";
 
@@ -54,7 +55,8 @@ const addStudentDal = async ({
     aadharFront,
     aadharBack,
     photo,
-    signature
+    signature,
+    centerId
 }:{
     candidateName?: string, 
     motherName?: string, 
@@ -89,8 +91,9 @@ const addStudentDal = async ({
     aadharFront?: string, 
     aadharBack?: string, 
     photo?: string, 
-    signature?: string
-}): Promise<any> => {
+    signature?: string,
+    centerId?: string
+}): Promise<IStudent> => {
     try {
         // Generate unique registration number
         const registrationNo = await generateRegistrationNumber();
@@ -130,7 +133,8 @@ const addStudentDal = async ({
             aadharFront: aadharFront,
             aadharBack: aadharBack,
             photo: photo,
-            signature: signature
+            signature: signature,
+            centerId: centerId ? new mongoose.Types.ObjectId(centerId) : null
         });
     } catch (error) {
         throw error;

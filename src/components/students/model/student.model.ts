@@ -1,4 +1,5 @@
-import mongoose, { Model, Schema, Document } from "mongoose";
+import mongoose, { Model, Document, Types } from "mongoose";
+const Schema = mongoose.Schema;
 
 interface IStudent extends Document {
     registrationNo?: string;
@@ -40,6 +41,7 @@ interface IStudent extends Document {
     updatedAt: Date;
     isApprovedByAdmin: Boolean;
     isMarksheetAndCertificateApproved: Boolean;
+    centerId?: Types.ObjectId | null;
 }
 
 const studentSchema = new Schema<IStudent>({
@@ -79,7 +81,8 @@ const studentSchema = new Schema<IStudent>({
     photo: { type: String, required: false },
     signature: { type: String, required: false },
     isApprovedByAdmin: { type: Boolean, required: false, default: false },
-    isMarksheetAndCertificateApproved: { type: Boolean, required: false, default: false }
+    isMarksheetAndCertificateApproved: { type: Boolean, required: false, default: false },
+    centerId: { type: mongoose.Schema.Types.ObjectId, ref: 'centers', required: false }
 },
     {
         timestamps: true
