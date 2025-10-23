@@ -277,6 +277,24 @@ const checkEmailExists = async (email: string): Promise<boolean> => {
   }
 };
 
+const findCenterByEmail = async (email: string): Promise<ICenter | null> => {
+  try {
+    // Find center by any of the email fields
+    const center = await CenterModel.findOne({
+      $or: [
+        { 'centerDetails.officialEmail': email },
+        { 'authorizedPersonDetails.email': email },
+        { 'loginCredentials.username': email }
+      ]
+    }).lean();
+    
+    return center;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 export default { 
   centerListAutoCompleteDal,
   createCenterDal,
@@ -286,5 +304,6 @@ export default {
   searchCentersDal,
   getAllCentersDal,
   updateCenterStatusDal,
-  checkEmailExists
+  checkEmailExists,
+  findCenterByEmail
 };

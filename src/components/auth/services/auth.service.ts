@@ -11,6 +11,8 @@ interface LoginResponse {
         role: string;
         registrationNo?: string;
         dob?: string;
+        centerName?: string;
+        centerCode?: string;
     };
     token: string;
 }
@@ -178,6 +180,60 @@ class AuthService {
                 userId: studentId, 
                 role,
                 type: 'student'
+            },
+            this.JWT_SECRET,
+            { expiresIn: this.JWT_EXPIRES_IN } as jwt.SignOptions
+        );
+    }
+
+    async centerLogin(data: LoginData): Promise<LoginResponse> {
+        try {
+            // Import center DAL dynamically to avoid circular dependency
+            const centerDal = (await import('../../centers/dals/center.dal.js')).default;
+            
+            // Find center by email
+            const center = await centerDal.findCenterByEmail(data.email);
+            if (!center) {
+                throw new Error('Invalid email or password');
+            }
+
+            // Check if center is approved
+            if (center.status !== 'approved') {
+                throw new Error('Center account is not approved yet');
+            }
+
+            // Verify password
+            const isPasswordValid = await bcrypt.compare(data.password, center.loginCredentials.password);
+            if (!isPasswordValid) {
+                throw new Error('Invalid email or password');
+            }
+
+            // Generate JWT token for center
+            const centerId = (center._id as any).toString();
+            const token = this.generateCenterToken(centerId, 'center');
+
+            return {
+                user: {
+                    id: centerId,
+                    name: center.authorizedPersonDetails.authName,
+                    email: center.authorizedPersonDetails.email,
+                    role: 'center',
+                    centerName: center.centerDetails.centerName,
+                    centerCode: center.centerDetails.centerCode
+                },
+                token
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    private generateCenterToken(centerId: string, role: string): string {
+        return jwt.sign(
+            { 
+                userId: centerId, 
+                role,
+                type: 'center'
             },
             this.JWT_SECRET,
             { expiresIn: this.JWT_EXPIRES_IN } as jwt.SignOptions

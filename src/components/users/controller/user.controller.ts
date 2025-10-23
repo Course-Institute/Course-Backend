@@ -164,4 +164,49 @@ const studentLogin = async (req: Request, res: Response): Promise<Response> => {
     }
 };
 
-export default { registerAdmin, adminLogin, getAdminProfile, studentLogin };
+const centerLogin = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { email, password } = req.body;
+
+        // Validate required fields
+        if (!email || !password) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Email and password are required'
+            });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Invalid email format'
+            });
+        }
+
+        const result = await authService.centerLogin({ email, password });
+        
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Center login successful',
+            data: result
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 401,
+            status: false,
+            message:'Login failed',
+            error: error.message
+        });
+    }
+};
+
+export default { registerAdmin, adminLogin, getAdminProfile, studentLogin, centerLogin };

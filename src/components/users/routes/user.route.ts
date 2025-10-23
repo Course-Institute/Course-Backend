@@ -23,6 +23,7 @@ const router = express.Router();
 // Public routes
 router.post('/admin-login', userController.adminLogin);
 router.post('/student-login', userController.studentLogin);
+router.post('/center-login', userController.centerLogin);
 
 // Protected routes (require password validation for registration)
 router.post('/register-admin', validatePassword, userController.registerAdmin);
