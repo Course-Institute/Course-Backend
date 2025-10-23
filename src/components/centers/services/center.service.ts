@@ -21,7 +21,7 @@ const centerListAutoComplete = async ({query}:{query: string}) => {
         }));
 
         return {
-            data: transformedData
+            transformedData
         };
     } catch (error) {
         console.log(error);
