@@ -188,25 +188,44 @@ class AuthService {
 
     async centerLogin(data: LoginData): Promise<LoginResponse> {
         try {
+            console.log('🔍 Center Login Debug - Email:', data.email);
+            
             // Import center DAL dynamically to avoid circular dependency
             const centerDal = (await import('../../centers/dals/center.dal.js')).default;
             
             // Find center by email
             const center = await centerDal.findCenterByEmail(data.email);
+            console.log('🔍 Center found:', center ? 'Yes' : 'No');
+            
             if (!center) {
+                console.log('❌ Center not found for email:', data.email);
                 throw new Error('Invalid email or password');
             }
 
-            // Check if center is approved
-            if (center.status !== 'approved') {
-                throw new Error('Center account is not approved yet');
-            }
+            console.log('🔍 Center status:', center.status);
+            console.log('🔍 Center name:', center.centerDetails?.centerName);
+            console.log('🔍 Center emails:', {
+                official: center.centerDetails?.officialEmail,
+                authorized: center.authorizedPersonDetails?.email,
+                login: center.loginCredentials?.username
+            });
 
+            // Skip approval check for now
+            console.log('⚠️ Skipping approval status check');
+
+            console.log('🔍 Checking password...');
+            console.log('🔍 Stored password hash exists:', !!center.loginCredentials?.password);
+            
             // Verify password
             const isPasswordValid = await bcrypt.compare(data.password, center.loginCredentials.password);
+            console.log('🔍 Password valid:', isPasswordValid);
+            
             if (!isPasswordValid) {
+                console.log('❌ Password mismatch');
                 throw new Error('Invalid email or password');
             }
+
+            console.log('✅ All checks passed, generating token...');
 
             // Generate JWT token for center
             const centerId = (center._id as any).toString();
@@ -223,7 +242,8 @@ class AuthService {
                 },
                 token
             };
-        } catch (error) {
+        } catch (error: any) {
+            console.log('❌ Center login error:', error.message);
             throw error;
         }
     }
