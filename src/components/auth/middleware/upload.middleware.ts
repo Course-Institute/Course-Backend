@@ -10,8 +10,11 @@ const __dirname = dirname(__filename);
 // Configure multer for disk storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        // Go up from src/components/auth/middleware to project root, then to uploads
-        const uploadPath = '/var/www/mivpsa/uploads/';
+        // Use environment-based upload path
+        const uploadPath = process.env.NODE_ENV === 'production' 
+            ? '/var/www/mivpsa/uploads/' 
+            : path.join(process.cwd(), 'uploads');
+        console.log('Upload path:', uploadPath);
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {

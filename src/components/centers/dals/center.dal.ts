@@ -5,7 +5,7 @@ import {
   UpdateCenterRequest, 
   CenterSearchFilters,
   CenterListResponse, 
-  ICenter
+  ICenter,
 } from '../models/center.model.js';
 
 // In-memory storage for demo purposes - replace with actual database operations
@@ -14,12 +14,35 @@ let centersStorage: CenterModel[] = [];
 const centerListAutoCompleteDal = async (query: string) => {
   try {
     const limit = 20;
-    
+
+    // Build filter condition
+    let filter = {};
+    if (query && query.trim()) {
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // Escape regex special chars
+      const regex = new RegExp(escapedQuery, "i"); // Case-insensitive search
+
+      filter = {
+        $or: [
+          { "centerDetails.centerName": regex },
+          { "centerDetails.centerCode": regex },
+          { "centerDetails.city": regex },
+          { "centerDetails.state": regex },
+        ],
+      };
+    }
+
+    // Query MongoDB
+    const centers = await CenterModel.find(filter)
+      .limit(limit)
+      .lean();
+
+    return centers;
   } catch (error) {
-    console.log(error);
+    console.error("Error in centerListAutoCompleteDal:", error);
     throw error;
   }
 };
+
 
 const createCenterDal = async (centerData: CreateCenterRequest): Promise<CenterModel> => {
   try {
@@ -165,7 +188,7 @@ const getAllCentersDal = async ({
   limit?: number; 
   pageNumber?: number; 
   skip?: number;
-}): Promise<{ centers: ICenter[]; totalCount: number; hasMore: boolean }> => {
+}): Promise<{ centers: ICenter[]; totalCount: number; hasMore: boolean, totalPages: number }> => {
   try {
     // Build filter object for MongoDB query
     const filter: any = {};
@@ -204,11 +227,13 @@ const getAllCentersDal = async ({
     
     // Check if there are more records
     const hasMore = calculatedSkip + centersList.length < totalCount;
+    const totalPages = Math.ceil(totalCount / limit);
     
     return {
       centers: centersList,
       totalCount,
-      hasMore
+      hasMore,
+      totalPages
     };
   } catch (error) {
     console.log(error);

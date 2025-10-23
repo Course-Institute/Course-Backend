@@ -3,6 +3,7 @@ import adminDal from '../dals/admin.dal.js';
 import centerService from '../../centers/services/center.service.js';
 import { CreateCenterRequest, CenterModel } from '../../centers/models/center.model.js';
 import centerDal from '../../centers/dals/center.dal.js';
+import studentDal from '../../students/dals/student.dal.js';
 
 const listAllStudents = async ({
     page = 1,
@@ -20,7 +21,7 @@ const listAllStudents = async ({
     session?: string;
 }) => {
     try {
-        const result = await adminDal.getAllStudents({
+        const result = await studentDal.getAllStudents({
             page,
             limit,
             search,
@@ -38,7 +39,7 @@ const listAllStudents = async ({
 
 const getStudentDetails = async (registrationNo: string) => {
     try {
-        const student = await adminDal.getStudentByRegistrationNo(registrationNo);
+        const student = await studentDal.getStudentByRegistrationNo(registrationNo);
 
         if (!student) {
             throw new Error('Student not found with the provided registration number');
@@ -72,7 +73,7 @@ const approveStudentService = async (
         data: IStudent | null
     }> => {
     try {
-        const updatedStudent = await adminDal.approveStudentDal({ registrationNo });
+        const updatedStudent = await studentDal.approveStudentDal({ registrationNo });
         return {
             status: true,
             message: "Student approved successfully",
@@ -130,6 +131,28 @@ const getAllCentersService = async ({
   }
 };
 
+const approveStudentMarksheetService = async (registrationNo: string): Promise<{
+    status: boolean,
+    message: string,
+    data: IStudent | null
+}> => {
+    try {
+        const updatedStudent = await studentDal.approveStudentMarksheetDal({ registrationNo });
+        return {
+            status: true,
+            message: "Marksheet approved successfully",
+            data: updatedStudent.data
+        };
+    } catch (error) {
+        console.error(error, "Failed to approve marksheet | service");
+        return {
+            status: false,
+            message: `${error} | Failed to approve marksheet | service `,
+            data: null
+        };
+    }
+};
+
 export default {
     listAllStudents,
     getStudentDetails,
@@ -137,4 +160,5 @@ export default {
     approveStudentService,
     registerCenterService,
     getAllCentersService,
+    approveStudentMarksheetService,
 };

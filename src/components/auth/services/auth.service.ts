@@ -33,7 +33,7 @@ interface StudentLoginData {
 
 class AuthService {
     private readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-    private readonly JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '5minutes';
+    private readonly JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
     async registerAdmin(data: RegisterData): Promise<any> {
         try {

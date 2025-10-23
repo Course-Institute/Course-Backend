@@ -129,38 +129,66 @@ const approveStudentController = async (req: Request, res: Response): Promise<Re
 
 const registerCenterController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const centerData: CreateCenterRequest = req.body;
+        const payload = req.body;
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
         
-        // Remove centerCode from request data since it will be auto-generated
-        if (centerData.centerDetails && centerData.centerDetails.centerCode) {
-            delete centerData.centerDetails.centerCode;
-        }
-        
-        // Validate required fields
-        if (!centerData.centerDetails || !centerData.centerDetails.centerName) {
-            return sendResponse({
-                res,
-                statusCode: 400,
-                status: false,
-                message: 'Center name is required',
-            });
-        }
+        // Convert internetFacility string to boolean
+        const internetFacility = payload.internetFacility === 'yes' || payload.internetFacility === 'true';
 
-        if (!centerData.centerDetails.officialEmail) {
-            return sendResponse({
-                res,
-                statusCode: 400,
-                status: false,
-                message: 'Official email ID is required',
-            });
-        }
+        // Map flat payload to nested structure
+        const centerData: CreateCenterRequest = {
+            centerDetails: {
+                centerName: payload.centerName,
+                centerType: payload.centerType,
+                yearOfEstablishment: parseInt(payload.yearOfEstablishment),
+                address: payload.address,
+                city: payload.city,
+                state: payload.state,
+                pinCode: payload.pinCode,
+                officialEmail: payload.officialEmail,
+                primaryContactNo: payload.contactNo,
+                website: payload.website || undefined
+            },
+            authorizedPersonDetails: {
+                authName: payload.authName,
+                designation: payload.designation,
+                contactNo: payload.contactNo,
+                email: payload.email,
+                idProofNo: payload.idProofNo,
+                photo: undefined // Will be set from file upload
+            },
+            infrastructureDetails: {
+                numClassrooms: parseInt(payload.numClassrooms),
+                numComputers: parseInt(payload.numComputers),
+                internetFacility: internetFacility,
+                seatingCapacity: parseInt(payload.seatingCapacity),
+                infraPhotos: [] // Will be set from file uploads
+            },
+            bankDetails: {
+                bankName: payload.bankName,
+                accountHolder: payload.accountHolder,
+                accountNumber: payload.accountNumber,
+                ifsc: payload.ifsc,
+                branchName: payload.branchName,
+                cancelledCheque: undefined // Will be set from file upload
+            },
+            documentUploads: {
+                gstCertificate: undefined,
+                panCard: undefined,
+                addressProof: undefined,
+                directorIdProof: undefined
+            },
+            declaration: {
+                declaration: true, // Assuming declaration is always true for admin registration
+                signatureUrl: undefined // Will be set from file upload
+            }
+        };
 
         // Process uploaded files and update centerData with file paths
         if (files) {
             // Handle authorized person photo
-            if (files.authorizedPersonPhoto && files.authorizedPersonPhoto[0]) {
-                centerData.authorizedPersonDetails.photo = files.authorizedPersonPhoto[0].filename;
+            if (files.photo && files.photo[0]) {
+                centerData.authorizedPersonDetails.photo = files.photo[0].filename;
             }
 
             // Handle infrastructure photos
@@ -238,6 +266,31 @@ const getAllCentersController = async (req: Request, res: Response): Promise<Res
     }
 }
 
+const approveStudentMarksheetController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { registrationNo } = req.body;
+
+        // Call the service to approve the marksheet
+        const result = await adminService.approveStudentMarksheetService(registrationNo);
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Marksheet approved successfully',
+            data: result,
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: 'Failed to approve marksheet',
+            error: error.message
+        });
+    }
+}
+
 // const approveCenterController = async (req: Request, res: Response): Promise<Response> => {
 
 // }
@@ -249,5 +302,6 @@ export default {
     approveStudentController,
     registerCenterController,
     getAllCentersController,
+    approveStudentMarksheetController,
     // approveCenterController,
 };
