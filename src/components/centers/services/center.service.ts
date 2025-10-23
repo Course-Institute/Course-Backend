@@ -39,11 +39,6 @@ const createCenter = async (centerData: CreateCenterRequest): Promise<CenterMode
         
         // Check if any email is used in multiple fields within the same registration
         const emails = [officialEmail, authorizedPersonEmail, loginUsername];
-        const uniqueEmails = [...new Set(emails)];
-        if (emails.length !== uniqueEmails.length) {
-            throw new Error('Same email cannot be used in multiple fields (official email, authorized person email, and login username must be unique)');
-        }
-        
         // Check if official email already exists in any center
         const existingOfficialEmail = await centerDal.checkEmailExists(officialEmail);
         if (existingOfficialEmail) {
