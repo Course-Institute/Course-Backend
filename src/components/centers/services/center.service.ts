@@ -12,7 +12,16 @@ import {
 const centerListAutoComplete = async ({query}:{query: string}) => {
     try {
         const result = await centerDal.centerListAutoCompleteDal(query);
-        return result;
+        result.map(center => {
+            return {
+                centerName: center.centerDetails.centerName,
+                centerCode: center.centerDetails.centerCode,
+                centerId: center._id
+            };
+        });
+        return {
+            centers: result
+        };
     } catch (error) {
         console.log(error);
         throw error;
