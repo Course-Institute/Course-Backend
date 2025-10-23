@@ -15,10 +15,10 @@ export const centerRegistrationSchema = Joi.object({
         }),
     
     centerType: Joi.string()
-        .valid('franchise', 'company', 'institute', 'other')
+        .valid('franchise', 'company', 'own', 'partner', 'other')
         .required()
         .messages({
-            'any.only': 'Center type must be one of: franchise, company, institute, other',
+            'any.only': 'Center type must be one of: franchise, company, own, partner, other',
             'any.required': 'Center type is required'
         }),
     
