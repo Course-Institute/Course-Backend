@@ -8,7 +8,9 @@ const createBillService = async (billData: CreateBillRequest, createdBy?: string
         
         return {
             id: (bill as any)._id.toString(),
-            billDetails: bill.billDetails || {},
+            // Flatten bill details to top level
+            ...(bill.billDetails || {}),
+            // Add top-level fields
             billType: bill.billType || "other",
             billNumber: bill.billNumber || "",
             createdAt: bill.createdAt,
@@ -32,7 +34,9 @@ const getBillByIdService = async (billId: string): Promise<BillModel | null> => 
 
         return {
             id: (bill as any)._id.toString(),
-            billDetails: bill.billDetails || {},
+            // Flatten bill details to top level
+            ...(bill.billDetails || {}),
+            // Add top-level fields
             billType: bill.billType || "other",
             billNumber: bill.billNumber || "",
             createdAt: bill.createdAt,
@@ -56,7 +60,9 @@ const getBillByBillNumberService = async (billNumber: string): Promise<BillModel
 
         return {
             id: (bill as any)._id.toString(),
-            billDetails: bill.billDetails || {},
+            // Flatten bill details to top level
+            ...(bill.billDetails || {}),
+            // Add top-level fields
             billType: bill.billType || "other",
             billNumber: bill.billNumber || "",
             createdAt: bill.createdAt,
@@ -74,10 +80,13 @@ const getAllBillsService = async (filters: BillSearchFilters): Promise<BillListR
     try {
         const result = await billDal.getAllBillsDal(filters);
         
-        // Transform the result to include proper BillModel structure
+        // Transform the result to match frontend expectations
+        // Flatten bill details to top level for easier frontend access
         const transformedBills = result.bills.map(bill => ({
             id: (bill as any)._id.toString(),
-            billDetails: bill.billDetails || {},
+            // Flatten bill details to top level
+            ...(bill.billDetails || {}),
+            // Add top-level fields
             billType: bill.billType || "other",
             billNumber: bill.billNumber || "",
             createdAt: bill.createdAt,
@@ -108,7 +117,9 @@ const updateBillStatusService = async (billId: string, status: "paid" | "pending
 
         return {
             id: (bill as any)._id.toString(),
-            billDetails: bill.billDetails || {},
+            // Flatten bill details to top level
+            ...(bill.billDetails || {}),
+            // Add top-level fields
             billType: bill.billType || "other",
             billNumber: bill.billNumber || "",
             createdAt: bill.createdAt,
@@ -136,10 +147,13 @@ const getBillsByCenterService = async (centerId: string, page = 1, limit = 10): 
     try {
         const result = await billDal.getBillsByCenterDal(centerId, page, limit);
         
-        // Transform the result to include proper BillModel structure
+        // Transform the result to match frontend expectations
+        // Flatten bill details to top level for easier frontend access
         const transformedBills = result.bills.map(bill => ({
             id: (bill as any)._id.toString(),
-            billDetails: bill.billDetails || {},
+            // Flatten bill details to top level
+            ...(bill.billDetails || {}),
+            // Add top-level fields
             billType: bill.billType || "other",
             billNumber: bill.billNumber || "",
             createdAt: bill.createdAt,
@@ -164,10 +178,13 @@ const getBillsByStudentService = async (registrationNo: string, page = 1, limit 
     try {
         const result = await billDal.getBillsByStudentDal(registrationNo, page, limit);
         
-        // Transform the result to include proper BillModel structure
+        // Transform the result to match frontend expectations
+        // Flatten bill details to top level for easier frontend access
         const transformedBills = result.bills.map(bill => ({
             id: (bill as any)._id.toString(),
-            billDetails: bill.billDetails || {},
+            // Flatten bill details to top level
+            ...(bill.billDetails || {}),
+            // Add top-level fields
             billType: bill.billType || "other",
             billNumber: bill.billNumber || "",
             createdAt: bill.createdAt,
