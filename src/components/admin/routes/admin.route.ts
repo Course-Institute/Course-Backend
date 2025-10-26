@@ -4,6 +4,8 @@ import adminController from '../controller/admin.controller.js';
 import { authenticateToken, authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
 import { uploadCenterFiles, multerErrorHandler } from '../../auth/middleware/upload.middleware.js';
 import { validateCenterRegistration } from '../../centers/validations/center.validation.js';
+import billController from '../../bills/controller/bill.controller.js';
+import { validateCreateBill } from '../../bills/validations/bill.validation.js';
 
 const router = express.Router();
 
@@ -34,5 +36,8 @@ router.post('/register-center', uploadCenterFiles.fields([
     { name: 'signature', maxCount: 1 }
 ]), multerErrorHandler, validateCenterRegistration, adminController.registerCenterController);
 router.post('/getAllCentersList', adminController.getAllCentersController);
+
+router.post('/create-bill', billController.createBillController);
+router.post('/getBillsList', billController.getAllBillsController);
 
 export default router;

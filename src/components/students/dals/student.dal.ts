@@ -197,7 +197,8 @@ const getAllStudents = async ({
     search,
     faculty,
     course,
-    session
+    session,
+    centerId
 }: {
     page?: number;
     limit?: number;
@@ -205,6 +206,7 @@ const getAllStudents = async ({
     faculty?: string;
     course?: string;
     session?: string;
+    centerId?: string;
 }) => {
     try {
         // Build query object
@@ -212,29 +214,19 @@ const getAllStudents = async ({
         
         // Add search functionality
         if (search) {
-            query.$or = [
+            const searchConditions: any[] = [
                 { candidateName: { $regex: search, $options: 'i' } },
                 { registrationNo: { $regex: search, $options: 'i' } },
                 { emailAddress: { $regex: search, $options: 'i' } },
                 { contactNumber: { $regex: search, $options: 'i' } }
             ];
+            query.$or = searchConditions;
+
         }
-        
-        // Add faculty filter
-        if (faculty) {
-            query.faculty = faculty;
+        // Check if search term is a valid ObjectId for centerId search
+        if (centerId) {
+            query.centerId = new mongoose.Types.ObjectId(centerId);
         }
-        
-        // Add course filter
-        if (course) {
-            query.course = course;
-        }
-        
-        // Add session filter
-        if (session) {
-            query.session = session;
-        }
-        
         // Calculate pagination
         const skip = (page - 1) * limit;
         

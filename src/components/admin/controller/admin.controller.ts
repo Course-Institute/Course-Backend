@@ -5,7 +5,7 @@ import { CreateCenterRequest } from '../../centers/models/center.model.js';
 
 const listAllStudentsController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { page = 1, limit = 10, search, faculty, course, session } = req.query;
+        const { page = 1, limit = 10, search, faculty, course, session, center } = req.query;
 
         const result = await adminService.listAllStudents({
             page: Number(page),
@@ -13,7 +13,8 @@ const listAllStudentsController = async (req: Request, res: Response): Promise<R
             search: search as string,
             faculty: faculty as string,
             course: course as string,
-            session: session as string
+            session: session as string,
+            centerId: center as string,
         });
 
         return sendResponse({

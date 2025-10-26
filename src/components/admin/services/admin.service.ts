@@ -11,7 +11,8 @@ const listAllStudents = async ({
     search,
     faculty,
     course,
-    session
+    session,
+    centerId
 }: {
     page?: number;
     limit?: number;
@@ -19,6 +20,7 @@ const listAllStudents = async ({
     faculty?: string;
     course?: string;
     session?: string;
+    centerId?: string;
 }) => {
     try {
         const result = await studentDal.getAllStudents({
@@ -27,7 +29,8 @@ const listAllStudents = async ({
             search,
             faculty,
             course,
-            session
+            session,
+            centerId
         });
         const transformedResult = result.students.map((student: any) => ({
             ...student,
