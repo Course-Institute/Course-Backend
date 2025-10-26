@@ -91,6 +91,7 @@ export interface UpdateCenterRequest {
   bankDetails?: Partial<BankDetails>;
   documentUploads?: Partial<DocumentUploads>;
   declaration?: Partial<CenterDeclaration>;
+  loginCredentials?: Partial<loginCredentials>;
 }
 
 export interface CenterListResponse {

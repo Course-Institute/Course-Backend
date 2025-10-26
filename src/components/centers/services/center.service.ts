@@ -1,6 +1,5 @@
 import centerDal from '../dals/center.dal.js';
 import centerHelper from '../helpers/center.helper.js';
-import userDal from '../../users/dals/user.dal.js';
 import bcrypt from 'bcryptjs';
 import { 
     CreateCenterRequest, 
@@ -8,6 +7,7 @@ import {
     CenterSearchFilters,
     CenterModel 
 } from '../models/center.model';
+import userDal from '../../users/dals/user.dal.js';
 
 const centerListAutoComplete = async ({query}:{query: string}) => {
     try {
@@ -15,17 +15,14 @@ const centerListAutoComplete = async ({query}:{query: string}) => {
         
         // Transform the data to match frontend requirements
         const transformedData = centers.map(center => ({
-            id: center._id.toString(),
             name: center.centerDetails.centerName,
-            centerId: center.centerDetails.centerCode
+            centerId: center._id.toString()
         }));
-
         return transformedData;
     } catch (error) {
-        console.log(error);
         throw error;
     }
-}
+};
 
 const createCenter = async (centerData: CreateCenterRequest): Promise<CenterModel> => {
     try {
@@ -37,56 +34,38 @@ const createCenter = async (centerData: CreateCenterRequest): Promise<CenterMode
         const authorizedPersonEmail = centerData.authorizedPersonDetails.email;
         const loginUsername = centerData.loginCredentials.username;
         
-        // Check if any email is used in multiple fields within the same registration
-        const emails = [officialEmail, authorizedPersonEmail, loginUsername];
-        // Check if official email already exists in any center
-        const existingOfficialEmail = await centerDal.checkEmailExists(officialEmail);
+        // Check if official email already exists in any center (only check officialEmail field)
+        const existingOfficialEmail = await centerDal.checkOfficialEmailExists(officialEmail);
         if (existingOfficialEmail) {
             throw new Error('Center with this official email already exists');
         }
 
-        // Check if authorized person email already exists in any center
-        const existingAuthorizedEmail = await centerDal.checkEmailExists(authorizedPersonEmail);
-        if (existingAuthorizedEmail) {
-            throw new Error('Authorized person email already exists in another center');
-        }
-
-        // Check if login username already exists in any center
-        const existingLoginUsername = await centerDal.checkEmailExists(loginUsername);
-        if (existingLoginUsername) {
-            throw new Error('Login username already exists in another center');
-        }
-
-        // Check if any of these emails already exist in users collection
-        for (const email of emails) {
-            const existingUser = await userDal.checkUserExists(email);
-            if (existingUser) {
-                throw new Error(`User with email ${email} already exists`);
-            }
+        // Check if login username (email) already exists in users collection
+        const existingUser = await userDal.checkUserExists(loginUsername);
+        if (existingUser) {
+            throw new Error('User with this email already exists');
         }
 
         // Create the center first
         const result = await centerDal.createCenterDal(centerData);
         
-        // Create user account for the center using loginCredentials
+        // Create a user in the Users collection with role 'center'
         if (result && result.loginCredentials) {
             try {
-                // Hash the password
+                // Hash the password for the user
                 const hashedPassword = await bcrypt.hash(result.loginCredentials.password, 12);
                 
-                // Create user with center role
+                // Create user in Users collection with role 'center'
                 await userDal.createCenterUser({
                     name: result.authorizedPersonDetails.authName,
-                    email: result.authorizedPersonDetails.email,
+                    email: result.loginCredentials.username,
                     password: hashedPassword
                 });
                 
-                console.log('User account created successfully for center:', result.centerDetails.centerName);
+                console.log('Center user created successfully for:', result.centerDetails.centerName);
             } catch (userError) {
-                console.error('Failed to create user account for center:', userError);
-                // Optionally, you might want to delete the created center if user creation fails
-                // await centerDal.deleteCenterDal(result.id);
-                // throw new Error('Failed to create user account for center');
+                console.error('Failed to create center user:', userError);
+                // Don't throw error, just log it - center is still created
             }
         }
 

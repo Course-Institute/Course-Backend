@@ -29,8 +29,17 @@ const listAllStudents = async ({
             course,
             session
         });
+        const transformedResult = result.students.map((student: any) => ({
+            ...student,
+            centerName: student.centerId?.centerDetails?.centerName,
+            centerCode: student.centerId?.centerDetails?.centerCode,
+            centerId: student.centerId?._id.toString(),
+        }));
 
-        return result;
+        return {
+            students: transformedResult,
+            pagination: result.pagination
+        };
     } catch (error) {
         console.log('Error in listAllStudents service:', error);
         throw error;

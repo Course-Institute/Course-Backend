@@ -2,18 +2,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userDal from '../../users/dals/user.dal.js';
 import studentDal from '../../students/dals/student.dal.js';
+import centerDal from '../../centers/dals/center.dal.js';
 
 interface LoginResponse {
-    user: {
-        id: string;
-        name: string;
-        email: string;
-        role: string;
-        registrationNo?: string;
-        dob?: string;
-        centerName?: string;
-        centerCode?: string;
-    };
+    user: any;
+    centerDetails?: any;
     token: string;
 }
 
@@ -188,77 +181,48 @@ class AuthService {
 
     async centerLogin(data: LoginData): Promise<LoginResponse> {
         try {
-            console.log('🔍 Center Login Debug - Email:', data.email);
+            // Find user with center role in users collection
+            const user = await userDal.findUserByEmail(data.email);
             
-            // Import center DAL dynamically to avoid circular dependency
-            const centerDal = (await import('../../centers/dals/center.dal.js')).default;
-            
-            // Find center by email
-            const center = await centerDal.findCenterByEmail(data.email);
-            console.log('🔍 Center found:', center ? 'Yes' : 'No');
-            
-            if (!center) {
-                console.log('❌ Center not found for email:', data.email);
+            if (!user) {
                 throw new Error('Invalid email or password');
             }
 
-            console.log('🔍 Center status:', center.status);
-            console.log('🔍 Center name:', center.centerDetails?.centerName);
-            console.log('🔍 Center emails:', {
-                official: center.centerDetails?.officialEmail,
-                authorized: center.authorizedPersonDetails?.email,
-                login: center.loginCredentials?.username
-            });
+            // Check if user is a center
+            if (user.role !== 'center') {
+                throw new Error('Access denied. Center role required.');
+            }
 
-            // Skip approval check for now
-            console.log('⚠️ Skipping approval status check');
-
-            console.log('🔍 Checking password...');
-            console.log('🔍 Stored password hash exists:', !!center.loginCredentials?.password);
-            
             // Verify password
-            const isPasswordValid = await bcrypt.compare(data.password, center.loginCredentials.password);
-            console.log('🔍 Password valid:', isPasswordValid);
-            
+            const isPasswordValid = await bcrypt.compare(data.password, user.password);
             if (!isPasswordValid) {
-                console.log('❌ Password mismatch');
                 throw new Error('Invalid email or password');
             }
 
-            console.log('✅ All checks passed, generating token...');
-
-            // Generate JWT token for center
-            const centerId = (center._id as any).toString();
-            const token = this.generateCenterToken(centerId, 'center');
+            // Generate JWT token
+            const token = this.generateToken(user._id.toString(), user.role);
+            const center = await centerDal.findCenterByEmail(user.email);
 
             return {
                 user: {
-                    id: centerId,
-                    name: center.authorizedPersonDetails.authName,
-                    email: center.authorizedPersonDetails.email,
-                    role: 'center',
-                    centerName: center.centerDetails.centerName,
-                    centerCode: center.centerDetails.centerCode
+                    id: user._id.toString(),
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
                 },
-                token
+                centerDetails:{
+                    centerName: center?.centerDetails?.centerName,
+                    centerCode: center?.centerDetails?.centerCode,
+                    centerId: (center?._id?.toString() || '')
+                },
+                token: token
             };
         } catch (error: any) {
-            console.log('❌ Center login error:', error.message);
             throw error;
         }
     }
 
-    private generateCenterToken(centerId: string, role: string): string {
-        return jwt.sign(
-            { 
-                userId: centerId, 
-                role,
-                type: 'center'
-            },
-            this.JWT_SECRET,
-            { expiresIn: this.JWT_EXPIRES_IN } as jwt.SignOptions
-        );
-    }
+
 }
 
 export default new AuthService();

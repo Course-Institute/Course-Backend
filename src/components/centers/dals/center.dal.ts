@@ -81,25 +81,16 @@ const getCenterByIdDal = async (centerId: string): Promise<CenterModel | null> =
 
 const updateCenterDal = async (centerId: string, updateData: UpdateCenterRequest): Promise<CenterModel | null> => {
   try {
-    const centerIndex = centersStorage.findIndex(c => c.id === centerId);
-    if (centerIndex === -1) {
-      return null;
-    }
+    // Update center in MongoDB
+    const updatedCenter = await CenterModel.findByIdAndUpdate(
+      centerId,
+      { 
+        ...updateData,
+        updatedAt: new Date()
+      },
+      { new: true, runValidators: true }
+    ).lean();
 
-    const existingCenter = centersStorage[centerIndex];
-    const updatedCenter: CenterModel = {
-      ...existingCenter,
-      centerDetails: { ...existingCenter.centerDetails, ...updateData.centerDetails },
-      authorizedPersonDetails: { ...existingCenter.authorizedPersonDetails, ...updateData.authorizedPersonDetails },
-      infrastructureDetails: { ...existingCenter.infrastructureDetails, ...updateData.infrastructureDetails },
-      bankDetails: { ...existingCenter.bankDetails, ...updateData.bankDetails },
-      documentUploads: { ...existingCenter.documentUploads, ...updateData.documentUploads },
-      declaration: { ...existingCenter.declaration, ...updateData.declaration },
-      id: centerId,
-      updatedAt: new Date()
-    };
-
-    centersStorage[centerIndex] = updatedCenter;
     return updatedCenter;
   } catch (error) {
     console.log(error);
@@ -277,6 +268,20 @@ const checkEmailExists = async (email: string): Promise<boolean> => {
   }
 };
 
+const checkOfficialEmailExists = async (email: string): Promise<boolean> => {
+  try {
+    // Check if official email exists in any center (only check officialEmail field)
+    const existingCenter = await CenterModel.findOne({
+      'centerDetails.officialEmail': email
+    });
+    
+    return !!existingCenter;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 const findCenterByEmail = async (email: string): Promise<ICenter | null> => {
   try {
     // Find center by any of the email fields
@@ -305,5 +310,6 @@ export default {
   getAllCentersDal,
   updateCenterStatusDal,
   checkEmailExists,
+  checkOfficialEmailExists,
   findCenterByEmail
 };

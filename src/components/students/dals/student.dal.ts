@@ -243,7 +243,8 @@ const getAllStudents = async ({
         
         // Get students with pagination
         const students = await StudentModel.find(query)
-            .select('registrationNo candidateName emailAddress contactNumber faculty course stream session year createdAt dateOfBirth')
+            .select('registrationNo candidateName emailAddress contactNumber faculty course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificatesApproved centerId')
+            .populate({path: 'centerId'})
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
