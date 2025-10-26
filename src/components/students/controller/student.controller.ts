@@ -2,6 +2,28 @@ import { Request, Response } from 'express';
 import studentService from '../services/student.service.js';
 import { sendResponse } from '../../../utils/response.util.js';
 
+const studentListAutoCompleteController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const query = req.query.query as string;
+        const result = await studentService.studentListAutoComplete({ query });
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Student list auto complete retrieved successfully',
+            data: result
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 404,
+            status: false,
+            message: error.message || 'Failed to retrieve student list auto complete',
+            error: error.message
+        });
+    }
+};
+
 const addStudentController = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { 
@@ -101,4 +123,8 @@ const getStudentProfileController = async (req: Request, res: Response): Promise
     }
 };
 
-export default { addStudentController, getStudentProfileController };
+export default { 
+    studentListAutoCompleteController,
+    addStudentController, 
+    getStudentProfileController 
+};

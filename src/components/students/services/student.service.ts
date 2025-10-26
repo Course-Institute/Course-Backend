@@ -4,6 +4,21 @@ import bcrypt from "bcryptjs";
 import { IStudent } from "../model/student.model.js";
 import mongoose from "mongoose";
 
+const studentListAutoComplete = async ({ query }: { query: string }) => {
+    try {
+        const students = await studentDal.studentListAutoCompleteDal(query);
+        
+        // Transform the data to match frontend requirements
+        const transformedData = students.map(student => ({
+            studentName: student.candidateName,
+            studentId: student._id.toString()
+        }));
+        return transformedData;
+    } catch (error) {
+        throw error;
+    }
+};
+
 const addStudent = async ({
     candidateName,
     motherName,
@@ -167,4 +182,8 @@ const getStudentProfile = async (registrationNo: string) => {
     }
 };
 
-export default { addStudent, getStudentProfile };
+export default { 
+    studentListAutoComplete,
+    addStudent, 
+    getStudentProfile 
+};

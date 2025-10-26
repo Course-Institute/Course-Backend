@@ -2,6 +2,41 @@ import mongoose from "mongoose";
 import { UserModel } from "../../users/models/user.model.js";
 import { IStudent, StudentModel } from "../model/student.model.js";
 
+const studentListAutoCompleteDal = async (query: string) => {
+    try {
+        const limit = 20;
+
+        // Build filter condition
+        let filter = {};
+        if (query && query.trim()) {
+            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // Escape regex special chars
+            const regex = new RegExp(escapedQuery, "i"); // Case-insensitive search
+
+            filter = {
+                $or: [
+                    { candidateName: regex },
+                    { registrationNo: regex },
+                    { emailAddress: regex },
+                    { contactNumber: regex },
+                    { course: regex },
+                    { faculty: regex }
+                ],
+            };
+        }
+
+        // Query MongoDB
+        const students = await StudentModel.find(filter)
+            .select('candidateName registrationNo _id')
+            .limit(limit)
+            .lean();
+
+        return students;
+    } catch (error) {
+        console.error("Error in studentListAutoCompleteDal:", error);
+        throw error;
+    }
+};
+
 // Function to generate unique 12-digit registration number
 const generateRegistrationNumber = async (): Promise<string> => {
     let registrationNo: string;
@@ -300,7 +335,8 @@ const approveStudentMarksheetDal = async ({
     }
 }
 
-export default { 
+export default {
+    studentListAutoCompleteDal,
     addStudentDal,
     findStudentByRegistrationNo,
     getStudentProfileByRegistrationNo,
