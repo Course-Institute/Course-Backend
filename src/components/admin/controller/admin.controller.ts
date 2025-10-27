@@ -300,11 +300,24 @@ const listStudentsForAdminOrCenterController = async (req: Request, res: Respons
     try {
         const { page = 1, limit = 10, search, faculty, course, session, centerId } = req.query;
         
+        console.log('Controller - req.user:', req.user);
+        console.log('Controller - user role:', req.user?.role);
+        console.log('Controller - user centerId:', req.user?.centerId);
+        console.log('Controller - query centerId:', centerId);
+        
         // If user is center, they can only see students from their own center
         let filteredCenterId = centerId as string;
-        if (req.user?.role === 'center' && req.user?.centerId) {
-            filteredCenterId = req.user.centerId;
+        if (req.user?.role === 'center') {
+            // Use centerId from token if available, otherwise use query parameter
+            if (req.user?.centerId) {
+                filteredCenterId = req.user.centerId;
+                console.log('Controller - Using centerId from token:', filteredCenterId);
+            } else {
+                console.log('Controller - No centerId in token, using query parameter:', filteredCenterId);
+            }
         }
+
+        console.log('Controller - Final filteredCenterId:', filteredCenterId);
 
         const result = await adminService.listAllStudents({
             page: Number(page),
@@ -324,6 +337,7 @@ const listStudentsForAdminOrCenterController = async (req: Request, res: Respons
             data: result
         });
     } catch (error: any) {
+        console.log('Controller - Error:', error);
         return sendResponse({
             res,
             statusCode: 400,

@@ -106,6 +106,10 @@ export const authorizeCenter = async (req: Request, res: Response, next: NextFun
 export const authorizeAdminOrCenter = async (req: Request, res: Response, next: NextFunction) => {
     try {
         console.log('AdminOrCenter middleware - req.user:', req.user);
+        console.log('AdminOrCenter middleware - user role:', req.user?.role);
+        console.log('AdminOrCenter middleware - user type:', req.user?.type);
+        console.log('AdminOrCenter middleware - user centerId:', req.user?.centerId);
+        
         if (!req.user) {
             console.log('AdminOrCenter middleware - No user found');
             return res.status(401).json({
