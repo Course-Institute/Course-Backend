@@ -59,6 +59,29 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             courseFee,
             centerId,
         } = req.body;
+        
+        console.log('AddStudent Controller - req.user:', req.user);
+        console.log('AddStudent Controller - user role:', req.user?.role);
+        console.log('AddStudent Controller - user centerId:', req.user?.centerId);
+        console.log('AddStudent Controller - request centerId:', centerId);
+        
+        // Security: Handle centerId based on user role
+        let finalCenterId = centerId;
+        if (req.user?.role === 'center') {
+            // Centers can only add students to their own center
+            if (req.user?.centerId) {
+                finalCenterId = req.user.centerId;
+                console.log('AddStudent Controller - Center user, using centerId from token:', finalCenterId);
+            } else {
+                console.log('AddStudent Controller - Center user but no centerId in token, using request centerId:', finalCenterId);
+            }
+        } else if (req.user?.role === 'admin') {
+            // Admins can add students to any center (use centerId from request)
+            console.log('AddStudent Controller - Admin user, using centerId from request:', finalCenterId);
+        }
+        
+        console.log('AddStudent Controller - Final centerId:', finalCenterId);
+        
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
         
         const aadharFront = files?.adharCardFront?.[0];
@@ -70,7 +93,7 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             motherName,
             fatherName,
             gender,
-            dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, faculty, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature, centerId
+            dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, faculty, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature, centerId: finalCenterId
         });
         return sendResponse({
             res,
@@ -80,6 +103,7 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             data: result
         });
     } catch (error: any) {
+        console.log('AddStudent Controller - Error:', error);
         return sendResponse({
             res,
             statusCode: 400,
