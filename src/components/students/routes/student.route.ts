@@ -1,7 +1,7 @@
 import express from 'express';
 import studentController from '../controller/student.controller.js';
 import adminController from '../../admin/controller/admin.controller.js';
-import { authenticateToken, authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
+import { authenticateToken, authorizeAdmin, authorizeAdminOrCenter } from '../../auth/middleware/auth.middleware.js';
 import { uploadStudentFiles, multerErrorHandler } from '../../auth/middleware/upload.middleware.js';
 
 const router = express.Router();
@@ -17,8 +17,8 @@ router.post('/add-student', authenticateToken, authorizeAdmin, uploadStudentFile
     { name: 'signature', maxCount: 1 }
 ]), multerErrorHandler, studentController.addStudentController);
 
-// List all students (admin only)
-router.get('/students', authenticateToken, authorizeAdmin, adminController.listAllStudentsController);
+// List students (admin and center access) - centers can only see their own students
+router.get('/students', authenticateToken, authorizeAdminOrCenter, adminController.listStudentsForAdminOrCenterController);
 
 // Student auto complete list (admin only)
 router.get('/getStudentAutoCompleteList', authenticateToken, authorizeAdmin, studentController.studentListAutoCompleteController);

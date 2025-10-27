@@ -186,6 +186,19 @@ class AuthService {
     );
   }
 
+  private generateCenterToken(userId: string, role: string, centerId: string): string {
+    return jwt.sign(
+      {
+        userId,
+        role,
+        type: "center",
+        centerId,
+      },
+      this.JWT_SECRET,
+      { expiresIn: this.JWT_EXPIRES_IN } as jwt.SignOptions
+    );
+  }
+
   async centerLogin(
     data: LoginData
   ): Promise<LoginResponse> {
@@ -211,15 +224,23 @@ class AuthService {
         throw new Error("Invalid email or password");
       }
 
-      // Generate JWT token
-      const token = this.generateToken(user._id.toString(), user.role);
+      // Get center details
       const center = await centerDal.findCenterByEmail(user.email);
+      if (!center) {
+        throw new Error("Center not found");
+      }
+
+      // Generate JWT token with center information
+      const token = this.generateCenterToken(user._id.toString(), user.role, center._id?.toString() || '');
 
       return {
         user: {
-          centerName: center?.centerDetails?.centerName,
-          centerCode: center?.centerDetails?.centerCode,
-          centerId: center?._id?.toString() || "",
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          centerName: center.centerDetails.centerName,
+          centerCode: center.centerDetails.centerCode,
+          centerId: center._id?.toString() || '',
           role: user.role,
         },
         token: token,

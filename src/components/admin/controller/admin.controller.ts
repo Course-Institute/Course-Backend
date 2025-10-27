@@ -296,6 +296,44 @@ const approveStudentMarksheetController = async (req: Request, res: Response): P
     }
 }
 
+const listStudentsForAdminOrCenterController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { page = 1, limit = 10, search, faculty, course, session, centerId } = req.query;
+        
+        // If user is center, they can only see students from their own center
+        let filteredCenterId = centerId as string;
+        if (req.user?.role === 'center' && req.user?.centerId) {
+            filteredCenterId = req.user.centerId;
+        }
+
+        const result = await adminService.listAllStudents({
+            page: Number(page),
+            limit: Number(limit),
+            search: search as string,
+            faculty: faculty as string,
+            course: course as string,
+            session: session as string,
+            centerId: filteredCenterId,
+        });
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Students retrieved successfully.',
+            data: result
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: 'Failed to retrieve student details',
+            error: error.message
+        })
+    }
+};
+
 // const approveCenterController = async (req: Request, res: Response): Promise<Response> => {
 
 // }
@@ -308,5 +346,6 @@ export default {
     registerCenterController,
     getAllCentersController,
     approveStudentMarksheetController,
+    listStudentsForAdminOrCenterController,
     // approveCenterController,
 };

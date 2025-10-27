@@ -9,6 +9,7 @@ declare global {
                 userId: string;
                 role: string;
                 type: string;
+                centerId?: string;
             };
         }
     }
@@ -53,7 +54,7 @@ export const authorizeAdmin = async (req: Request, res: Response, next: NextFunc
             });
         }
 
-        if (req.user.role === 'admin' || req.user.role === 'center' || req.user.type !== 'admin') {
+        if (req.user.role !== 'admin' || req.user.type !== 'admin') {
             console.log('Admin middleware - User is not admin. Role:', req.user.role, 'Type:', req.user.type);
             return res.status(403).json({
                 status: false,
@@ -65,6 +66,66 @@ export const authorizeAdmin = async (req: Request, res: Response, next: NextFunc
         next();
     } catch (error) {
         console.log('Admin middleware - Error:', error);
+        return res.status(500).json({
+            status: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+export const authorizeCenter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.log('Center middleware - req.user:', req.user);
+        if (!req.user) {
+            console.log('Center middleware - No user found');
+            return res.status(401).json({
+                status: false,
+                message: 'Authentication required'
+            });
+        }
+
+        if (req.user.role !== 'center') {
+            console.log('Center middleware - User is not center. Role:', req.user.role);
+            return res.status(403).json({
+                status: false,
+                message: 'Center access required'
+            });
+        }
+
+        console.log('Center middleware - User is center, proceeding...');
+        next();
+    } catch (error) {
+        console.log('Center middleware - Error:', error);
+        return res.status(500).json({
+            status: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+export const authorizeAdminOrCenter = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.log('AdminOrCenter middleware - req.user:', req.user);
+        if (!req.user) {
+            console.log('AdminOrCenter middleware - No user found');
+            return res.status(401).json({
+                status: false,
+                message: 'Authentication required'
+            });
+        }
+
+        if (req.user.role !== 'admin' && req.user.role !== 'center') {
+            console.log('AdminOrCenter middleware - User is not admin or center. Role:', req.user.role);
+            return res.status(403).json({
+                status: false,
+                message: 'Admin or Center access required'
+            });
+        }
+
+        console.log('AdminOrCenter middleware - User is authorized, proceeding...');
+        next();
+    } catch (error) {
+        console.log('AdminOrCenter middleware - Error:', error);
         return res.status(500).json({
             status: false,
             message: 'Internal server error'
