@@ -53,7 +53,7 @@ export const authorizeAdmin = async (req: Request, res: Response, next: NextFunc
             });
         }
 
-        if (req.user.role !== 'admin' || req.user.type !== 'admin') {
+        if (req.user.role === 'admin' || req.user.role === 'center' || req.user.type !== 'admin') {
             console.log('Admin middleware - User is not admin. Role:', req.user.role, 'Type:', req.user.type);
             return res.status(403).json({
                 status: false,
