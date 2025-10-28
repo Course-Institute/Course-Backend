@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { UserModel } from "../../users/models/user.model.js";
 import { IStudent, StudentModel } from "../model/student.model.js";
 
-const studentListAutoCompleteDal = async (query: string) => {
+const studentListAutoCompleteDal = async ({query, centerId}: {query: string, centerId: string}) => {
     try {
         const limit = 20;
 
@@ -21,6 +21,13 @@ const studentListAutoCompleteDal = async (query: string) => {
                     { course: regex },
                     { faculty: regex }
                 ],
+            };
+        }
+
+        if (centerId) {
+            filter = {
+                ...filter,
+                centerId: new mongoose.Types.ObjectId(centerId)
             };
         }
 

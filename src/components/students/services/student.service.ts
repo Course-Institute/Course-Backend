@@ -4,9 +4,9 @@ import bcrypt from "bcryptjs";
 import { IStudent } from "../model/student.model.js";
 import mongoose from "mongoose";
 
-const studentListAutoComplete = async ({ query }: { query: string }) => {
+const studentListAutoComplete = async ({ query, centerId }: { query: string, centerId: string }) => {
     try {
-        const students = await studentDal.studentListAutoCompleteDal(query);
+        const students = await studentDal.studentListAutoCompleteDal({query, centerId});
         
         // Transform the data to match frontend requirements
         const transformedData = students.map(student => ({
