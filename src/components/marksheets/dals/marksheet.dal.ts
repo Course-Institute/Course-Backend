@@ -35,11 +35,6 @@ const getAllMarksheetsDal = async ({
             
             // Search in subject names within the marksheet
             filter['subjects.subjectName'] = regexSearch;
-            filter['studentId'] = regexSearch;
-        }
-
-        if(centerId) {
-            filter['studentId.centerId'] = centerId;
         }
         
         // Calculate skip value for infinite scroll
@@ -73,8 +68,63 @@ const getAllMarksheetsDal = async ({
     }
 };
 
+const getMarksheetByStudentIdDal = async (studentId: string): Promise<any> => {
+    try {
+        const marksheet = await MarksheetModel.findOne({ studentId })
+            .populate('studentId', 'registrationNo candidateName course faculty session centerId isMarksheetAndCertificateApproved')
+            .lean();
+        
+        return marksheet;
+    } catch (error) {
+        console.log('Error in getMarksheetByStudentIdDal:', error);
+        throw error;
+    }
+};
+
+const showMarksheetWithFullStudentDataDal = async (studentId: string): Promise<any> => {
+    try {
+        const marksheet = await MarksheetModel.findOne({ studentId })
+            .populate({
+                path: 'studentId',
+                select: 'registrationNo candidateName motherName fatherName gender dateOfBirth adharCardNo category areYouEmployed employerName designation contactNumber alternateNumber emailAddress currentAddress permanentAddress city state nationality country pincode courseType faculty course stream year monthSession hostelFacility session duration courseFee aadharFront aadharBack photo signature isApprovedByAdmin isMarksheetAndCertificateApproved isMarksheetGenerated centerId createdAt updatedAt',
+                populate: {
+                    path: 'centerId',
+                    select: 'centerName email'
+                }
+            })
+            .lean();
+        
+        return marksheet;
+    } catch (error) {
+        console.log('Error in showMarksheetWithFullStudentDataDal:', error);
+        throw error;
+    }
+};
+
+const updateMarksheetDal = async ({ marksheetId, subjects }: { marksheetId: string, subjects: SubjectMarks[] }): Promise<IMarksheet> => {
+    try {
+        const result = await MarksheetModel.findByIdAndUpdate(
+            marksheetId,
+            { subjects: subjects },
+            { new: true, runValidators: true }
+        );
+        
+        if (!result) {
+            throw new Error('Marksheet not found');
+        }
+        
+        return result;
+    } catch (error) {
+        console.log('Error in updateMarksheetDal:', error);
+        throw error;
+    }
+};
+
 export default {
     uploadMarksheetDal,
-    getAllMarksheetsDal
+    getAllMarksheetsDal,
+    getMarksheetByStudentIdDal,
+    updateMarksheetDal,
+    showMarksheetWithFullStudentDataDal
 };
 

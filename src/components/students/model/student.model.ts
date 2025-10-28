@@ -41,6 +41,7 @@ interface IStudent extends Document {
     updatedAt: Date;
     isApprovedByAdmin: Boolean;
     isMarksheetAndCertificateApproved: Boolean;
+    isMarksheetGenerated: Boolean;
     centerId?: Types.ObjectId | null;
 }
 
@@ -82,6 +83,7 @@ const studentSchema = new Schema<IStudent>({
     signature: { type: String, required: false },
     isApprovedByAdmin: { type: Boolean, required: false, default: false },
     isMarksheetAndCertificateApproved: { type: Boolean, required: false, default: false },
+    isMarksheetGenerated: { type: Boolean, required: false, default: false },
     centerId: { type: mongoose.Schema.Types.ObjectId, ref: 'centers', required: false }
 },
     {

@@ -277,7 +277,7 @@ const getAllStudents = async ({
         
         // Get students with pagination
         const students = await StudentModel.find(query)
-            .select('registrationNo candidateName emailAddress contactNumber faculty course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificatesApproved centerId')
+            .select('registrationNo candidateName emailAddress contactNumber faculty course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated')
             .populate({path: 'centerId'})
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -317,14 +317,19 @@ const getStudentByRegistrationNo = async (registrationNo: string) => {
 };
 
 const approveStudentMarksheetDal = async ({
-    registrationNo
+    registrationNo,
+    studentId
 }:{
-    registrationNo: string
+    registrationNo?: string
+    studentId?: string
 }) => {
     try {
+        if(studentId) {
+            registrationNo = (await StudentModel.findById(studentId).select('registrationNo').lean())?.registrationNo;
+        }
          const updatedStudent = await StudentModel.findOneAndUpdate(
-           { registrationNo },
-           { $set: { isMarksheetAndCertificatesApproved: true } },
+           { registrationNo: registrationNo },
+           { $set: { isMarksheetAndCertificateApproved: true } },
            { new: true, runValidators: true }
          );
         return {
@@ -352,7 +357,21 @@ const findStudentById = async (studentId: string): Promise<any> => {
     }
 }
 
-export default {
+const updateMarksheetGenerationStatusDal = async ({studentId, isMarksheetGenerated}: {studentId: string, isMarksheetGenerated: boolean}) => {
+    try {
+        const updatedStudent = await StudentModel.findOneAndUpdate(
+            { _id: new mongoose.Types.ObjectId(studentId) },
+            { $set: { isMarksheetGenerated: isMarksheetGenerated } },
+            { new: true, runValidators: true }
+        );
+        return updatedStudent;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}   
+
+export default {    
     studentListAutoCompleteDal,
     addStudentDal,
     findStudentByRegistrationNo,
@@ -362,4 +381,5 @@ export default {
     approveStudentDal,
     approveStudentMarksheetDal,
     findStudentById,
+    updateMarksheetGenerationStatusDal
 };

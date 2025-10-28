@@ -273,10 +273,14 @@ const getAllCentersController = async (req: Request, res: Response): Promise<Res
 
 const approveStudentMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { registrationNo } = req.body;
+        const { registrationNo, subjects, marksheetId } = req.body;
 
         // Call the service to approve the marksheet
-        const result = await adminService.approveStudentMarksheetService(registrationNo);
+        const result = await adminService.approveStudentMarksheetService({
+            registrationNo,
+            subjects,
+            marksheetId
+        });
 
         return sendResponse({
             res,

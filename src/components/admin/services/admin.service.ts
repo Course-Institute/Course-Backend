@@ -4,6 +4,8 @@ import centerService from '../../centers/services/center.service.js';
 import { CreateCenterRequest, CenterModel } from '../../centers/models/center.model.js';
 import centerDal from '../../centers/dals/center.dal.js';
 import studentDal from '../../students/dals/student.dal.js';
+import marksheetService from '../../marksheets/services/marksheet.service.js';
+import { SubjectMarks } from '../../marksheets/models/marksheet.model.js';
 
 const listAllStudents = async ({
     page = 1,
@@ -143,17 +145,42 @@ const getAllCentersService = async ({
   }
 };
 
-const approveStudentMarksheetService = async (registrationNo: string): Promise<{
+const approveStudentMarksheetService = async ({
+    registrationNo,
+    subjects,
+    marksheetId
+}: {
+    registrationNo: string;
+    subjects?: SubjectMarks[];
+    marksheetId?: string;
+}): Promise<{
     status: boolean,
     message: string,
     data: IStudent | null
 }> => {
     try {
+        // If marksheetId and subjects are provided, update the marksheet
+        if (marksheetId && subjects && subjects.length > 0) {
+            // Get student by registration number to get studentId
+            const student = await studentDal.getStudentByRegistrationNo(registrationNo);
+            if (!student) {
+                throw new Error('Student not found');
+            }
+            
+            await marksheetService.uploadOrUpdateMarksheet({
+                marksheetId,
+                subjects,
+                studentId: student._id.toString()
+            });
+        }
+
+        // Update student approval status
         const updatedStudent = await studentDal.approveStudentMarksheetDal({ registrationNo });
+        
         return {
             status: true,
             message: "Marksheet approved successfully",
-            data: updatedStudent.data
+            data: updatedStudent?.data
         };
     } catch (error) {
         console.error(error, "Failed to approve marksheet | service");
