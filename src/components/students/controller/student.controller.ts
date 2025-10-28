@@ -4,8 +4,8 @@ import { sendResponse } from '../../../utils/response.util.js';
 
 const studentListAutoCompleteController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const query = req.query.query as string;
-        const centerId = req.query.centerId as string;
+        const query = req.body.query as string;
+        const centerId = req.body.centerId as string;
         const result = await studentService.studentListAutoComplete({ query, centerId });
         return sendResponse({
             res,
