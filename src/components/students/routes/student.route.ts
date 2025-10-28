@@ -21,6 +21,6 @@ router.post('/add-student', authenticateToken, authorizeAdminOrCenter, uploadStu
 router.get('/students', authenticateToken, authorizeAdminOrCenter, adminController.listStudentsForAdminOrCenterController);
 
 // Student auto complete list (admin only)
-router.get('/getStudentAutoCompleteList', authenticateToken, authorizeAdmin, studentController.studentListAutoCompleteController);
+router.get('/getStudentAutoCompleteList', authenticateToken, authorizeAdminOrCenter, studentController.studentListAutoCompleteController);
 
 export default router;
