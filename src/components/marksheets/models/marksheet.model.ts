@@ -12,7 +12,7 @@ export interface SubjectMarks {
 }
 
 interface IMarksheet extends Document {
-  studentId?: string;
+  studentId?: mongoose.Types.ObjectId;
   subjects?: SubjectMarks[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -51,7 +51,7 @@ subjectMarksSchema.pre('save', function(next) {
 // Main marksheet schema
 const marksheetSchema = new Schema<IMarksheet>(
   {
-    studentId: { type: String, required: false },
+    studentId: { type: Schema.Types.ObjectId, ref: 'students', required: true },
     subjects: [subjectMarksSchema],
   },
   {
