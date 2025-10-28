@@ -8,4 +8,6 @@ const router = express.Router();
 // Marksheet management routes
 router.post('/upload-marksheet', authenticateToken, authorizeAdminOrCenter, validateCreateMarksheet, marksheetController.uploadMarksheetController);
 
+router.get('/getAllMarksheets', authenticateToken, authorizeAdminOrCenter, marksheetController.getAllMarksheetsController);
+
 export default router;

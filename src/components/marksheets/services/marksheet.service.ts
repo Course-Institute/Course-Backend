@@ -2,6 +2,33 @@ import marksheetDal from '../dals/marksheet.dal.js';
 import { IMarksheet, SubjectMarks } from '../models/marksheet.model.js';
 import { calculateSubjectGrade } from '../helpers/grade.helper.js';
 
+const getAllMarksheetsService = async ({
+    query,
+    limit,
+    pageNumber,
+    centerId
+}: {
+    query?: string;
+    limit?: number;
+    pageNumber?: number;
+    centerId?: string;
+}) => {
+    try {
+        const skip = ((pageNumber || 1) - 1) * (limit || 10);
+        const result = await marksheetDal.getAllMarksheetsDal({
+            query,
+            limit,
+            pageNumber,
+            skip,
+            centerId
+        });
+        return result;
+    } catch (error) {
+        console.log('Error in getAllMarksheetsService:', error);
+        throw error;
+    }
+};
+
 const uploadMarksheetService = async ({ studentId, subjects }: { studentId: string, subjects: SubjectMarks[] }): Promise<IMarksheet> => {
     try {
         // Validate inputs
@@ -64,5 +91,6 @@ const uploadMarksheetService = async ({ studentId, subjects }: { studentId: stri
 };
 
 export default {
-    uploadMarksheetService
+    uploadMarksheetService,
+    getAllMarksheetsService
 };

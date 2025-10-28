@@ -3,6 +3,33 @@ import marksheetService from '../services/marksheet.service.js';
 import { sendResponse } from '../../../utils/response.util.js';
 import { SubjectMarks } from '../models/marksheet.model.js';
 
+const getAllMarksheetsController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { query, limit = 10, pageNumber = 1, centerId } = req.query;
+        const marksheets = await marksheetService.getAllMarksheetsService({ 
+            query: query as string, 
+            limit: Number(limit), 
+            pageNumber: Number(pageNumber),
+            centerId: centerId as string
+        });
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'All marksheets retrieved successfully',
+            data: marksheets
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: 'Failed to retrieve marksheets',
+            error: error.message
+        });
+    }
+};
+
 const uploadMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { studentId, subjects } = req.body;
@@ -49,5 +76,6 @@ const uploadMarksheetController = async (req: Request, res: Response): Promise<R
 };
 
 export default {
-    uploadMarksheetController
+    uploadMarksheetController,
+    getAllMarksheetsController
 };
