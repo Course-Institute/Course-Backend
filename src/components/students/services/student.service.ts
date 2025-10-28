@@ -10,8 +10,9 @@ const studentListAutoComplete = async ({ query }: { query: string }) => {
         
         // Transform the data to match frontend requirements
         const transformedData = students.map(student => ({
-            studentName: student.candidateName,
+            studentName: `${student.candidateName}(Father: ${ student.fatherName}, Reg No.: ${student.registrationNo})`,
             studentId: student._id.toString()
+
         }));
         return transformedData;
     } catch (error) {

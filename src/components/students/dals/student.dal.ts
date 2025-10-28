@@ -26,7 +26,7 @@ const studentListAutoCompleteDal = async (query: string) => {
 
         // Query MongoDB
         const students = await StudentModel.find(filter)
-            .select('candidateName registrationNo _id')
+            .select('candidateName registrationNo _id fatherName')
             .limit(limit)
             .lean();
 
@@ -335,6 +335,16 @@ const approveStudentMarksheetDal = async ({
     }
 }
 
+const findStudentById = async (studentId: string): Promise<any> => {
+    try {
+        const student = await StudentModel.findById(studentId).lean();
+        return student;
+    } catch (error) {
+        console.log('Error in findStudentById DAL:', error);
+        throw error;
+    }
+}
+
 export default {
     studentListAutoCompleteDal,
     addStudentDal,
@@ -344,4 +354,5 @@ export default {
     getStudentByRegistrationNo,
     approveStudentDal,
     approveStudentMarksheetDal,
+    findStudentById,
 };
