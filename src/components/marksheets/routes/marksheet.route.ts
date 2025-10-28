@@ -5,10 +5,6 @@ import { validateCreateMarksheet } from '../validations/marksheet.validation.js'
 
 const router = express.Router();
 
-// All marksheet routes require authentication and admin role
-router.use(authenticateToken);
-router.use(authorizeAdmin);
-
 // Marksheet management routes
 router.post('/upload-marksheet', authenticateToken, authorizeAdminOrCenter, validateCreateMarksheet, marksheetController.uploadMarksheetController);
 
