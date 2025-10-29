@@ -1,5 +1,102 @@
 import { IStudent, StudentModel } from '../../students/model/student.model.js';
 import { UserModel } from '../../users/models/user.model.js';
+import { CenterModel } from '../../centers/models/center.model.js';
+import { BillModel } from '../../bills/models/bill.model.js';
+
+const getDashboardStatsDal = async () => {
+    try {
+        const now = new Date();
+        
+        // Calculate date ranges for monthly comparisons
+        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        // 1. Get total active students count (approved by admin)
+        const studentCount = await StudentModel.countDocuments({
+            isApprovedByAdmin: true
+        });
+
+        // 2. Get total payments (sum of paid bills)
+        const totalPaymentsResult = await BillModel.aggregate([
+            {
+                $match: {
+                    'billDetails.status': 'paid',
+                    'billDetails.amount': { $exists: true, $ne: null }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$billDetails.amount' }
+                }
+            }
+        ]);
+        const totalPayments = totalPaymentsResult.length > 0 && totalPaymentsResult[0].total 
+            ? Math.round(totalPaymentsResult[0].total) 
+            : 0;
+
+        // 3. Get pending approvals (students not approved + centers pending)
+        const [pendingStudents, pendingCenters] = await Promise.all([
+            StudentModel.countDocuments({ isApprovedByAdmin: false }),
+            CenterModel.countDocuments({ status: 'pending' })
+        ]);
+        const pendingApprovals = pendingStudents + pendingCenters;
+
+        // 4. Get active centers count (approved)
+        const activeCenters = await CenterModel.countDocuments({ status: 'approved' });
+
+        // 5. Calculate student monthly increase
+        const [currentMonthStudents, previousMonthStudents] = await Promise.all([
+            StudentModel.countDocuments({
+                createdAt: { $gte: currentMonthStart },
+                isApprovedByAdmin: true
+            }),
+            StudentModel.countDocuments({
+                createdAt: { 
+                    $gte: previousMonthStart, 
+                    $lte: previousMonthEnd 
+                },
+                isApprovedByAdmin: true
+            })
+        ]);
+
+        const studentIncrease = previousMonthStudents > 0
+            ? Math.round(((currentMonthStudents - previousMonthStudents) / previousMonthStudents) * 1000) / 10
+            : (currentMonthStudents > 0 ? 100 : 0);
+
+        // 6. Calculate center monthly increase
+        const [currentMonthCenters, previousMonthCenters] = await Promise.all([
+            CenterModel.countDocuments({
+                createdAt: { $gte: currentMonthStart },
+                status: 'approved'
+            }),
+            CenterModel.countDocuments({
+                createdAt: { 
+                    $gte: previousMonthStart, 
+                    $lte: previousMonthEnd 
+                },
+                status: 'approved'
+            })
+        ]);
+
+        const centerIncrease = previousMonthCenters > 0
+            ? Math.round(((currentMonthCenters - previousMonthCenters) / previousMonthCenters) * 1000) / 10
+            : (currentMonthCenters > 0 ? 100 : 0);
+
+        return {
+            studentCount,
+            totalPayments,
+            pendingApprovals,
+            activeCenters,
+            studentIncrease,
+            centerIncrease
+        };
+    } catch (error) {
+        console.log('Error in getDashboardStatsDal:', error);
+        throw error;
+    }
+};
 
 const getDashboardStatistics = async () => {
     try {
@@ -91,4 +188,5 @@ const getDashboardStatistics = async () => {
 
 export default {
     getDashboardStatistics,
+    getDashboardStatsDal,
 };

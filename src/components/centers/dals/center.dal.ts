@@ -7,6 +7,9 @@ import {
   CenterListResponse, 
   ICenter,
 } from '../models/center.model.js';
+import { StudentModel } from '../../students/model/student.model.js';
+import { BillModel } from '../../bills/models/bill.model.js';
+import mongoose from 'mongoose';
 
 // In-memory storage for demo purposes - replace with actual database operations
 let centersStorage: CenterModel[] = [];
@@ -300,6 +303,46 @@ const findCenterByEmail = async (email: string): Promise<ICenter | null> => {
   }
 };
 
+const getDashboardStatsDal = async (centerId: string) => {
+  try {
+    // Convert centerId string to ObjectId for MongoDB query
+    const centerObjectId = new mongoose.Types.ObjectId(centerId);
+
+    // 1. Get total students count for this center
+    const totalStudents = await StudentModel.countDocuments({
+      centerId: centerObjectId
+    });
+
+    // 2. Get active students count (approved by admin) for this center
+    const activeStudents = await StudentModel.countDocuments({
+      centerId: centerObjectId,
+      isApprovedByAdmin: true
+    });
+
+    // 3. Get pending approvals count (students not approved) for this center
+    const pendingApprovals = await StudentModel.countDocuments({
+      centerId: centerObjectId,
+      isApprovedByAdmin: false
+    });
+
+    // 4. Get completed payments count (paid bills) for this center
+    const completedPayments = await BillModel.countDocuments({
+      'billDetails.centerId': centerId,
+      'billDetails.status': 'paid'
+    });
+
+    return {
+      totalStudents: totalStudents || 0,
+      activeStudents: activeStudents || 0,
+      pendingApprovals: pendingApprovals || 0,
+      completedPayments: completedPayments || 0
+    };
+  } catch (error) {
+    console.log('Error in getDashboardStatsDal:', error);
+    throw error;
+  }
+};
+
 export default { 
   centerListAutoCompleteDal,
   createCenterDal,
@@ -311,5 +354,6 @@ export default {
   updateCenterStatusDal,
   checkEmailExists,
   checkOfficialEmailExists,
-  findCenterByEmail
+  findCenterByEmail,
+  getDashboardStatsDal
 };

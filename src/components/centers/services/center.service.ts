@@ -129,6 +129,19 @@ const updateCenterStatus = async (centerId: string, status: 'pending' | 'approve
         throw error;
     }
 }
+
+const getDashboardStats = async (centerId: string) => {
+    try {
+        if (!centerId) {
+            throw new Error('Center ID is required');
+        }
+        const stats = await centerDal.getDashboardStatsDal(centerId);
+        return stats;
+    } catch (error) {
+        console.log('Error in getDashboardStats service:', error);
+        throw error;
+    }
+};
 export default { 
     centerListAutoComplete,
     createCenter,
@@ -136,5 +149,6 @@ export default {
     updateCenter,
     deleteCenter,
     searchCenters,
-    updateCenterStatus
+    updateCenterStatus,
+    getDashboardStats
 };

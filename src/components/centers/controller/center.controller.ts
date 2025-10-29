@@ -216,6 +216,41 @@ const updateCenterStatusController = async (req: Request, res: Response): Promis
     }
 }
 
+const getDashboardStatsController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        // Extract centerId from JWT token (set by auth middleware)
+        const centerId = req.user?.centerId;
+
+        // Validate centerId exists in token
+        if (!centerId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Bad Request. Center ID not found in token.'
+            });
+        }
+
+        // Get dashboard stats for this center
+        const stats = await centerService.getDashboardStats(centerId);
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Dashboard stats retrieved successfully',
+            data: stats
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 500,
+            status: false,
+            message: error.message || 'Internal server error. Please try again later.'
+        });
+    }
+};
+
 export default { 
     centerListAutoCompleteController,
     createCenterController,
@@ -223,5 +258,6 @@ export default {
     updateCenterController,
     deleteCenterController,
     searchCentersController,
-    updateCenterStatusController
+    updateCenterStatusController,
+    getDashboardStatsController
 };

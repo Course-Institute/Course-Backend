@@ -134,16 +134,19 @@ const getStudentProfileController = async (req: Request, res: Response): Promise
             res,
             statusCode: 200,
             status: true,
-            message: 'Student profile retrieved successfully',
+            message: 'Student found',
             data: student
         });
     } catch (error: any) {
+        // Check if error is "Student not found" to return appropriate message
+        const errorMessage = error.message || 'Failed to retrieve student profile';
+        const isNotFound = errorMessage.includes('not found') || errorMessage.includes('Student not found');
+        
         return sendResponse({
             res,
             statusCode: 404,
             status: false,
-            message:'Failed to retrieve student profile',
-            error: error.message
+            message: isNotFound ? 'Student not found with this registration number' : errorMessage
         });
     }
 };

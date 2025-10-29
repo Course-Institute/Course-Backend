@@ -76,6 +76,16 @@ const getDashboardData = async () => {
     }
 };
 
+const getDashboardStats = async () => {
+    try {
+        const stats = await adminDal.getDashboardStatsDal();
+        return stats;
+    } catch (error) {
+        console.log('Error in getDashboardStats service:', error);
+        throw error;
+    }
+};
+
 const approveStudentService = async (
     {
         registrationNo
@@ -196,6 +206,7 @@ export default {
     listAllStudents,
     getStudentDetails,
     getDashboardData,
+    getDashboardStats,
     approveStudentService,
     registerCenterService,
     getAllCentersService,

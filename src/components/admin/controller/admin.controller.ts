@@ -90,6 +90,21 @@ const getAdminDashboardController = async (req: Request, res: Response): Promise
     }
 };
 
+const getDashboardStatsController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const stats = await adminService.getDashboardStats();
+
+        // Return data directly without wrapping in sendResponse (as per requirements)
+        return res.status(200).json(stats);
+    } catch (error: any) {
+        // Error responses should still follow the error format
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error. Please try again later.'
+        });
+    }
+};
+
 const approveStudentController = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { registrationNo } = req.body;
@@ -360,6 +375,7 @@ export default {
     listAllStudentsController,
     getStudentDetailsController,
     getAdminDashboardController,
+    getDashboardStatsController,
     approveStudentController,
     registerCenterController,
     getAllCentersController,
