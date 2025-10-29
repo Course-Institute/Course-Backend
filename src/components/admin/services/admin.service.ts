@@ -86,6 +86,16 @@ const getDashboardStats = async () => {
     }
 };
 
+const getCenterDynamics = async () => {
+    try {
+        const dynamics = await adminDal.getCenterDynamicsDal();
+        return dynamics;
+    } catch (error) {
+        console.log('Error in getCenterDynamics service:', error);
+        throw error;
+    }
+};
+
 const approveStudentService = async (
     {
         registrationNo
@@ -207,6 +217,7 @@ export default {
     getStudentDetails,
     getDashboardData,
     getDashboardStats,
+    getCenterDynamics,
     approveStudentService,
     registerCenterService,
     getAllCentersService,

@@ -98,6 +98,67 @@ const getDashboardStatsDal = async () => {
     }
 };
 
+const getCenterDynamicsDal = async () => {
+    try {
+        // Get total centers count
+        const totalCenters = await CenterModel.countDocuments();
+
+        // Get active centers count (approved)
+        const activeCenters = await CenterModel.countDocuments({ status: 'approved' });
+
+        // Get inactive centers count (pending or rejected)
+        const inactiveCenters = await CenterModel.countDocuments({
+            status: { $in: ['pending', 'rejected'] }
+        });
+
+        // Get total students across all centers
+        const totalStudents = await StudentModel.countDocuments({});
+
+        // Get recent activity (centers created or updated in last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const recentActivity = await CenterModel.find({
+            $or: [
+                { createdAt: { $gte: thirtyDaysAgo } },
+                { updatedAt: { $gte: thirtyDaysAgo } }
+            ]
+        })
+        .select('centerDetails.centerName centerDetails.centerCode status createdAt updatedAt')
+        .sort({ updatedAt: -1 })
+        .limit(10)
+        .lean();
+
+        // Format recent activity
+        const formattedRecentActivity = recentActivity.map((center: any) => {
+            const createdAt = center.createdAt ? new Date(center.createdAt).getTime() : 0;
+            const updatedAt = center.updatedAt ? new Date(center.updatedAt).getTime() : 0;
+            // If updated more than 5 minutes after creation, consider it an update
+            const action = (updatedAt - createdAt) > 300000 ? 'updated' : 'created';
+            
+            return {
+                centerName: center.centerDetails?.centerName || '',
+                centerCode: center.centerDetails?.centerCode || '',
+                status: center.status || 'pending',
+                createdAt: center.createdAt,
+                updatedAt: center.updatedAt,
+                action
+            };
+        });
+
+        return {
+            totalCenters: totalCenters || 0,
+            activeCenters: activeCenters || 0,
+            inactiveCenters: inactiveCenters || 0,
+            totalStudents: totalStudents || 0,
+            recentActivity: formattedRecentActivity || []
+        };
+    } catch (error) {
+        console.log('Error in getCenterDynamicsDal:', error);
+        throw error;
+    }
+};
+
 const getDashboardStatistics = async () => {
     try {
         // Get total students count
@@ -189,4 +250,5 @@ const getDashboardStatistics = async () => {
 export default {
     getDashboardStatistics,
     getDashboardStatsDal,
+    getCenterDynamicsDal,
 };

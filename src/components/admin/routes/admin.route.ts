@@ -19,6 +19,7 @@ router.get('/profile', userController.getAdminProfile);
 // Admin dashboard route
 router.get('/dashboard', adminController.getAdminDashboardController);
 router.get('/dashboardStats', adminController.getDashboardStatsController);
+router.get('/centerdynamics', adminController.getCenterDynamicsController);
 
 // Student management routes
 router.get('/students/:registrationNo', adminController.getStudentDetailsController);

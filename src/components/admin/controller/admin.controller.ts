@@ -105,6 +105,28 @@ const getDashboardStatsController = async (req: Request, res: Response): Promise
     }
 };
 
+const getCenterDynamicsController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const dynamics = await adminService.getCenterDynamics();
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Center dynamics retrieved successfully',
+            data: dynamics
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 500,
+            status: false,
+            message: error.message || 'Internal server error. Please try again later.',
+            error: error.message
+        });
+    }
+};
+
 const approveStudentController = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { registrationNo } = req.body;
@@ -376,6 +398,7 @@ export default {
     getStudentDetailsController,
     getAdminDashboardController,
     getDashboardStatsController,
+    getCenterDynamicsController,
     approveStudentController,
     registerCenterController,
     getAllCentersController,
