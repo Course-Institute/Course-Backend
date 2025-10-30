@@ -109,7 +109,7 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             res,
             statusCode: 400,
             status: false,
-            message:'Failed to add student',
+            message:error.message || 'Failed to add student',
             error: error.message
         });
     }

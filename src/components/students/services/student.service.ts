@@ -98,7 +98,7 @@ const addStudent = async ({
         const existingUser = await userDal.checkUserExists(emailAddress || '');
         if (existingUser) {
             // Send error back, don't add student entry
-            const err = new Error(`User with email ${emailAddress} already exists`);
+            const err = new Error(`Student with email ${emailAddress} already exists`);
             // Optionally, use custom error types/codes
             (err as any).code = 'USER_ALREADY_EXISTS';
             throw err;
