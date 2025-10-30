@@ -94,6 +94,16 @@ const addStudent = async ({
     centerId?: string
 }): Promise<IStudent> => {
     try {
+        // Check if user with this email already exists
+        const existingUser = await userDal.checkUserExists(emailAddress || '');
+        if (existingUser) {
+            // Send error back, don't add student entry
+            const err = new Error(`User with email ${emailAddress} already exists`);
+            // Optionally, use custom error types/codes
+            (err as any).code = 'USER_ALREADY_EXISTS';
+            throw err;
+        }
+
         // Create student record
         const student = await studentDal.addStudentDal({
             candidateName, 
@@ -133,23 +143,17 @@ const addStudent = async ({
             centerId: centerId
         });
 
-        // Check if user with this email already exists
-        const existingUser = await userDal.checkUserExists(emailAddress || '');
-        if (existingUser) {
-            console.log(`User with email ${emailAddress} already exists, skipping user creation`);
-        } else {
-            // Generate a default password for the student (can be changed later)
-            const defaultPassword = await bcrypt.hash(student.registrationNo || '123456', 12);
-            
-            // Create user record for the student
-            await userDal.createStudentUser({
-                name: candidateName || '',
-                email: emailAddress || '',
-                password: defaultPassword,
-                dob: dateOfBirth || '',
-                registrationNo: student.registrationNo || ''
-            });
-        }
+        // Generate a default password for the student (can be changed later)
+        const defaultPassword = await bcrypt.hash(student.registrationNo || '123456', 12);
+
+        // Create user record for the student
+        await userDal.createStudentUser({
+            name: candidateName || '',
+            email: emailAddress || '',
+            password: defaultPassword,
+            dob: dateOfBirth || '',
+            registrationNo: student.registrationNo || ''
+        });
         
         // Return student data with registration number
         return {
