@@ -87,6 +87,14 @@ const createCenterUser = async (data: RegisterAdminData): Promise<any> => {
         }
     }
 
+const deleteUserByRegistrationNo = async (registrationNo: string): Promise<any> => {
+    try {
+        return await UserModel.findOneAndDelete({ registrationNo });
+    } catch (error) {
+        throw error;
+    }
+}
+
 
 export default { 
         findUserByEmail,
@@ -95,5 +103,6 @@ export default {
         findAdminById,
         checkUserExists,
         createStudentUser,
-        createCenterUser
+        createCenterUser,
+        deleteUserByRegistrationNo
 }

@@ -23,4 +23,13 @@ router.get('/students', authenticateToken, authorizeAdminOrCenter, adminControll
 // Student auto complete list (admin only)
 router.post('/getStudentAutoCompleteList', authenticateToken, authorizeAdminOrCenter, studentController.studentListAutoCompleteController);
 
+// Delete a student (admin only, takes studentId in POST body)
+router.post('/delete-student', authenticateToken, authorizeAdmin, studentController.deleteStudentByBodyController);
+
+// Update a student (admin only, partial update)
+router.post('/update-student', authenticateToken, authorizeAdmin, studentController.updateStudentController);
+
+// Get a student by id (admin or center)
+router.post('/get-student', authenticateToken, authorizeAdminOrCenter, studentController.getStudentByIdFromBodyController);
+
 export default router;

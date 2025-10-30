@@ -22,8 +22,8 @@ app.use(cors({
     
     // Allow specific ports
     const allowedOrigins = [
-      'http://localhost:4000',
-      'http://127.0.0.1:4000',
+      'http://localhost:4001',
+      'http://127.0.0.1:4001',
       'https://mivpsa.in',
       'https://www.mivpsa.in'
     ];

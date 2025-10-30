@@ -3,6 +3,7 @@ import userDal from "../../users/dals/user.dal.js";
 import bcrypt from "bcryptjs";
 import { IStudent } from "../model/student.model.js";
 import mongoose from "mongoose";
+import { StudentModel } from "../model/student.model.js";
 
 const studentListAutoComplete = async ({ query, centerId }: { query: string, centerId: string }) => {
     try {
@@ -187,8 +188,64 @@ const getStudentProfile = async (registrationNo: string) => {
     }
 };
 
+const deleteStudent = async (studentId: string): Promise<boolean> => {
+    try {
+        // Remove from students collection
+        const deletedStudent = await studentDal.findStudentById(studentId); // "deletedStudent" may be null
+        if (!deletedStudent) return false;
+        await StudentModel.findByIdAndDelete(studentId);
+        // Remove from users collection by registrationNo if present
+        if (deletedStudent.registrationNo) {
+            await userDal.deleteUserByRegistrationNo(deletedStudent.registrationNo);
+        }
+        return true;
+    } catch (err) {
+        throw err;
+    }
+};
+
+const updateStudent = async (studentId: string, updates: Record<string, any>) => {
+    try {
+        const allowed = new Set([
+            'candidateName','motherName','fatherName','dateOfBirth','gender',
+            'contactNumber','emailAddress','faculty','course','stream','year','session',
+            'centerId','centerName','centerCode',
+            'isApprovedByAdmin','isMarksheetGenerated','isMarksheetAndCertificateApproved'
+        ]);
+        const safeUpdates: Record<string, any> = {};
+        for (const [k, v] of Object.entries(updates)) {
+            if (allowed.has(k)) safeUpdates[k] = v;
+        }
+        if (Object.keys(safeUpdates).length === 0) {
+            const err = new Error('No valid fields to update.');
+            (err as any).statusCode = 400;
+            throw err;
+        }
+        const updated = await StudentModel.findByIdAndUpdate(
+            studentId,
+            { $set: safeUpdates },
+            { new: true }
+        );
+        return updated;
+    } catch (err) {
+        throw err;
+    }
+};
+
+const getStudentById = async (studentId: string) => {
+    try {
+        const student = await studentDal.findStudentById(studentId);
+        return student;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export default { 
     studentListAutoComplete,
     addStudent, 
-    getStudentProfile 
+    getStudentProfile, 
+    deleteStudent,
+    updateStudent,
+    getStudentById
 };

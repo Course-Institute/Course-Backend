@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import studentService from '../services/student.service.js';
 import { sendResponse } from '../../../utils/response.util.js';
+import { authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
 
 const studentListAutoCompleteController = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -151,8 +152,75 @@ const getStudentProfileController = async (req: Request, res: Response): Promise
     }
 };
 
+const deleteStudentController = async (req: Request, res: Response) => {
+    const { studentId } = req.params;
+    try {
+        const deleted = await studentService.deleteStudent(studentId);
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: "Student not found." });
+        }
+        return res.json({ success: true, message: "Student deleted successfully." });
+    } catch (err: any) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+const deleteStudentByBodyController = async (req: Request, res: Response) => {
+    const { studentId } = req.body;
+    if (!studentId) {
+        return res.status(400).json({ success: false, message: "Missing studentId in request body." });
+    }
+    try {
+        const deleted = await studentService.deleteStudent(studentId);
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: "Student not found." });
+        }
+        return res.json({ success: true, message: "Student deleted successfully." });
+    } catch (err: any) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+const updateStudentController = async (req: Request, res: Response) => {
+    try {
+        const { studentId, ...updates } = req.body;
+        if (!studentId) {
+            return res.status(400).json({ success: false, message: 'studentId is required.' });
+        }
+        const updated = await studentService.updateStudent(studentId, updates);
+        if (!updated) {
+            return res.status(404).json({ success: false, message: 'Student not found.' });
+        }
+        return res.json({ success: true, message: 'Student updated successfully.', student: updated });
+    } catch (err: any) {
+        const msg = err?.message || 'Internal server error';
+        const code = (err as any)?.statusCode || 500;
+        return res.status(code).json({ success: false, message: msg });
+    }
+};
+
+const getStudentByIdFromBodyController = async (req: Request, res: Response) => {
+    try {
+        const { studentId } = req.body;
+        if (!studentId) {
+            return res.status(400).json({ success: false, message: 'studentId is required.' });
+        }
+        const student = await studentService.getStudentById(studentId);
+        if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found.' });
+        }
+        return res.status(200).json({ success: true, student });
+    } catch (err: any) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 export default { 
     studentListAutoCompleteController,
     addStudentController, 
-    getStudentProfileController 
+    getStudentProfileController,
+    deleteStudentController,
+    deleteStudentByBodyController,
+    updateStudentController,
+    getStudentByIdFromBodyController
 };
