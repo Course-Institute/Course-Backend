@@ -24,7 +24,7 @@ interface IStudent extends Document {
     country?: string;
     pincode?: string;
     courseType?: string;
-    faculty?: string;
+    grade?: string;
     course?: string;
     stream?: string;
     year?: string;
@@ -68,7 +68,7 @@ const studentSchema = new Schema<IStudent>({
     country: { type: String, required: false },
     pincode: { type: String, required: false },
     courseType: { type: String, required: false },
-    faculty: { type: String, required: false },
+    grade: { type: String, required: false },
     course: { type: String, required: false },
     stream: { type: String, required: false },
     year: { type: String, required: false },

@@ -85,7 +85,7 @@ const addStudentDal = async ({
     country,
     pincode,
     courseType,
-    faculty,
+    grade,
     course,
     stream,
     year,
@@ -121,7 +121,7 @@ const addStudentDal = async ({
     country?: string, 
     pincode?: string, 
     courseType?: string, 
-    faculty?: string, 
+    grade?: string, 
     course?: string, 
     stream?: string, 
     year?: string, 
@@ -163,7 +163,7 @@ const addStudentDal = async ({
             country: country,
             pincode: pincode,
             courseType: courseType,
-            faculty: faculty,
+            grade: grade,
             course: course,
             stream: stream,
             year: year,
@@ -277,7 +277,7 @@ const getAllStudents = async ({
         
         // Get students with pagination
         const students = await StudentModel.find(query)
-            .select('registrationNo candidateName emailAddress contactNumber faculty course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated')
+            .select('registrationNo candidateName emailAddress contactNumber grade course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated')
             .populate({path: 'centerId'})
             .sort({ createdAt: -1 })
             .skip(skip)

@@ -36,6 +36,7 @@ const listAllStudents = async ({
         });
         const transformedResult = result.students.map((student: any) => ({
             ...student,
+            stream : student.stream ? student.stream : 'N/A',
             centerName: student.centerId?.centerDetails?.centerName,
             centerCode: student.centerId?.centerDetails?.centerCode,
             centerId: student.centerId?._id.toString(),

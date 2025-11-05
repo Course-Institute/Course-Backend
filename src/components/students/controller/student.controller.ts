@@ -50,7 +50,7 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             country,
             pincode,
             courseType,
-            faculty,
+            grade,
             course,
             stream,
             year,
@@ -95,7 +95,7 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             motherName,
             fatherName,
             gender,
-            dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, faculty, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature, centerId: finalCenterId
+            dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, grade, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature, centerId: finalCenterId
         });
         return sendResponse({
             res,
