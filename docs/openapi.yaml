@@ -1,0 +1,81 @@
+openapi: 3.0.3
+info:
+  title: MIVPSA Backend API
+  version: 1.0.0
+paths:
+  /api/inquiry/newInquiry:
+    post:
+      summary: Submit a new inquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, phone, programOfInterest, message, inquiryType]
+              properties:
+                fullName: { type: string, minLength: 2, maxLength: 100 }
+                email: { type: string, format: email, maxLength: 150 }
+                phone: { type: string, pattern: '^[0-9]{10}$' }
+                programOfInterest: { type: string, maxLength: 120 }
+                message: { type: string, minLength: 10, maxLength: 2000 }
+                inquiryType:
+                  type: string
+                  enum: [student, center]
+      responses:
+        '201':
+          description: Inquiry created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean, example: true }
+                  message: { type: string, example: Inquiry submitted successfully }
+                  data:
+                    type: object
+                    properties:
+                      id: { type: string }
+                      fullName: { type: string }
+                      email: { type: string }
+                      phone: { type: string }
+                      programOfInterest: { type: string }
+                      message: { type: string }
+                      inquiryType: { type: string, enum: [student, center] }
+                      createdAt: { type: string, format: date-time }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean, example: false }
+                  message: { type: string }
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field: { type: string }
+                        message: { type: string }
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean, example: false }
+                  message: { type: string, example: Too many requests }
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean, example: false }
+                  message: { type: string }
+
+
