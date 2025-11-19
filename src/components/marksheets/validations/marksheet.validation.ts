@@ -4,7 +4,10 @@ import { Request, Response, NextFunction } from 'express';
 export const validateCreateMarksheet = (req: Request, res: Response, next: NextFunction): void => {
     const {
         studentId,
-        subjects
+        semester,
+        courseId,
+        subjects,
+        marksheetId
     } = req.body;
 
     const errors: string[] = [];
@@ -12,6 +15,16 @@ export const validateCreateMarksheet = (req: Request, res: Response, next: NextF
     // Validate studentId
     if (!studentId || typeof studentId !== 'string') {
         errors.push('Student ID is required and must be a string');
+    }
+
+    // Validate semester (required when creating new marksheet, optional when updating)
+    if (!marksheetId && (!semester || typeof semester !== 'string')) {
+        errors.push('Semester is required and must be a string when creating a new marksheet');
+    }
+
+    // Validate courseId (required when creating new marksheet, optional when updating)
+    if (!marksheetId && (!courseId || typeof courseId !== 'string')) {
+        errors.push('Course ID is required and must be a string when creating a new marksheet');
     }
 
     // Validate subjects array

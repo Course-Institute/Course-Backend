@@ -7,9 +7,10 @@ const router = express.Router();
 
 // Marksheet management routes
 router.post('/upload-marksheet', authenticateToken, authorizeAdminOrCenter, validateCreateMarksheet, marksheetController.uploadMarksheetController);
+router.post('/update-marksheet', authenticateToken, authorizeAdminOrCenter, validateCreateMarksheet, marksheetController.updateMarksheetController);
 
 router.get('/getAllMarksheets', authenticateToken, authorizeAdminOrCenter, marksheetController.getAllMarksheetsController);
 router.get('/get-marksheet', authenticateToken, marksheetController.getMarksheetController);
-router.get('/show-marksheet', authenticateToken, marksheetController.showMarksheetController);
+router.post('/show-marksheet', authenticateToken, marksheetController.showMarksheetController);
 
 export default router;

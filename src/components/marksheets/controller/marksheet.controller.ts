@@ -32,14 +32,36 @@ const getAllMarksheetsController = async (req: Request, res: Response): Promise<
 
 const uploadMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { studentId, subjects, marksheetId, role } = req.body;
+        const { studentId, semester, courseId, subjects, marksheetId, role } = req.body;
 
         if (!studentId) {
             return sendResponse({
                 res,
                 statusCode: 400,
                 status: false,
-                message: 'Student ID is required'
+                message: 'Student ID is required',
+                data: null
+            });
+        }
+
+        if (!semester) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Semester is required',
+                data: null
+            });
+        }
+
+        // CourseId is required when creating new marksheet (when marksheetId is not provided)
+        if (!marksheetId && !courseId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Course ID is required when creating a new marksheet',
+                data: null
             });
         }
 
@@ -48,12 +70,19 @@ const uploadMarksheetController = async (req: Request, res: Response): Promise<R
                 res,
                 statusCode: 400,
                 status: false,
-                message: 'At least one subject is required'
+                message: 'At least one subject is required',
+                data: null
             });
         }
 
+        // Check if marksheet already exists for this student + semester
+        const existingMarksheet = await marksheetService.getMarksheetByStudentIdAndSemesterService(studentId, semester);
+        const isUpdate = existingMarksheet || marksheetId;
+
         const marksheet = await marksheetService.uploadOrUpdateMarksheet({
             studentId,
+            semester,
+            courseId,
             subjects: subjects as SubjectMarks[],
             marksheetId,
             role
@@ -61,17 +90,28 @@ const uploadMarksheetController = async (req: Request, res: Response): Promise<R
 
         return sendResponse({
             res,
-            statusCode: marksheetId ? 200 : 201,
+            statusCode: isUpdate ? 200 : 201,
             status: true,
-            message: marksheetId ? 'Marksheet updated successfully' : 'Marksheet uploaded successfully',
+            message: isUpdate ? 'Marksheet updated successfully' : 'Marksheet created successfully',
             data: marksheet
         });
     } catch (error: any) {
+        // Handle specific error cases
+        if (error.message.includes('Invalid courseId') || error.message.includes('Invalid course ID')) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: error.message || 'Invalid courseId',
+                data: null
+            });
+        }
+
         return sendResponse({
             res,
             statusCode: 400,
             status: false,
-            message: 'Failed to upload/update marksheet',
+            message: error.message || 'Failed to upload/update marksheet',
             error: error.message
         });
     }
@@ -140,7 +180,9 @@ const getMarksheetController = async (req: Request, res: Response): Promise<Resp
 
 const showMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { studentId } = req.query;
+        // Support both query parameters and request body
+        const studentId = (req.query.studentId || req.body.studentId) as string;
+        const semester = (req.query.semester || req.body.semester) as string;
 
         if (!studentId) {
             return sendResponse({
@@ -151,14 +193,25 @@ const showMarksheetController = async (req: Request, res: Response): Promise<Res
             });
         }
 
-        const marksheet = await marksheetService.showMarksheetService(studentId as string);
+        if (!semester) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Semester is required',
+                data: null
+            });
+        }
+
+        const marksheet = await marksheetService.getMarksheetByStudentIdAndSemesterService(studentId, semester);
 
         if (!marksheet) {
             return sendResponse({
                 res,
-                statusCode: 404,
+                statusCode: 200,
                 status: false,
-                message: 'Marksheet not found for the given student ID'
+                message: 'No marksheet found for this student and semester',
+                data: null
             });
         }
 
@@ -166,7 +219,7 @@ const showMarksheetController = async (req: Request, res: Response): Promise<Res
             res,
             statusCode: 200,
             status: true,
-            message: 'Marksheet retrieved successfully',
+            message: 'Marksheet fetched successfully',
             data: marksheet
         });
     } catch (error: any) {
@@ -180,9 +233,89 @@ const showMarksheetController = async (req: Request, res: Response): Promise<Res
     }
 };
 
+const updateMarksheetController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { marksheetId, studentId, semester, subjects, role } = req.body;
+
+        if (!marksheetId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Marksheet ID is required'
+            });
+        }
+
+        if (!studentId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Student ID is required'
+            });
+        }
+
+        if (!semester) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Semester is required',
+                data: null
+            });
+        }
+
+        if (!subjects || !Array.isArray(subjects) || subjects.length === 0) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Subjects array cannot be empty',
+                data: null
+            });
+        }
+
+        const marksheet = await marksheetService.updateMarksheetService({
+            marksheetId,
+            studentId,
+            semester,
+            subjects: subjects as SubjectMarks[],
+            role
+        });
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Marksheet updated successfully',
+            data: marksheet
+        });
+    } catch (error: any) {
+        // Handle specific error cases
+        if (error.message.includes('not found')) {
+            return sendResponse({
+                res,
+                statusCode: 404,
+                status: false,
+                message: error.message || 'Marksheet not found',
+                data: null
+            });
+        }
+
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: error.message || 'Failed to update marksheet',
+            data: null
+        });
+    }
+};
+
 export default {
     uploadMarksheetController,
     getAllMarksheetsController,
     getMarksheetController,
-    showMarksheetController
+    showMarksheetController,
+    updateMarksheetController
 };

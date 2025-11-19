@@ -1,9 +1,9 @@
 import { IMarksheet, MarksheetModel, SubjectMarks } from '../models/marksheet.model.js';
 import mongoose from 'mongoose';
 
-const uploadMarksheetDal = async ({ studentId, subjects }: { studentId: string, subjects: SubjectMarks[] }): Promise<IMarksheet> => {
+const uploadMarksheetDal = async ({ studentId, semester, courseId, subjects, role }: { studentId: string, semester: string, courseId: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
     try {
-        const result = await MarksheetModel.create({ studentId, subjects });
+        const result = await MarksheetModel.create({ studentId, semester, courseId, subjects, role });
         return result;
     } catch (error) {
         console.log('Error in uploadMarksheetDal:', error);
@@ -43,12 +43,13 @@ const getAllMarksheetsDal = async ({
         // Get total count before pagination
         const totalCount = await MarksheetModel.countDocuments(filter);
         
-        // Fetch marksheets with pagination and populate student data
+        // Fetch marksheets with pagination and populate student and course data
         const marksheetsList = await MarksheetModel.find(filter)
             .sort({ createdAt: -1 })
             .skip(calculatedSkip)
             .limit(limit)
             .populate('studentId', 'registrationNo candidateName course faculty session centerId')
+            .populate('courseId', 'name code duration description')
             .lean();
         
         
@@ -72,6 +73,7 @@ const getMarksheetByStudentIdDal = async (studentId: string): Promise<any> => {
     try {
         const marksheet = await MarksheetModel.findOne({ studentId })
             .populate('studentId', 'registrationNo candidateName course faculty session centerId isMarksheetAndCertificateApproved')
+            .populate('courseId', 'name code duration description')
             .lean();
         
         return marksheet;
@@ -92,6 +94,7 @@ const showMarksheetWithFullStudentDataDal = async (studentId: string): Promise<a
                     select: 'centerName email'
                 }
             })
+            .populate('courseId', 'name code duration description')
             .lean();
         
         return marksheet;
@@ -101,11 +104,16 @@ const showMarksheetWithFullStudentDataDal = async (studentId: string): Promise<a
     }
 };
 
-const updateMarksheetDal = async ({ marksheetId, subjects }: { marksheetId: string, subjects: SubjectMarks[] }): Promise<IMarksheet> => {
+const updateMarksheetDal = async ({ marksheetId, subjects, role }: { marksheetId: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
     try {
+        const updateData: any = { subjects: subjects };
+        if (role) {
+            updateData.role = role;
+        }
+        
         const result = await MarksheetModel.findByIdAndUpdate(
             marksheetId,
-            { subjects: subjects },
+            updateData,
             { new: true, runValidators: true }
         );
         
@@ -120,11 +128,43 @@ const updateMarksheetDal = async ({ marksheetId, subjects }: { marksheetId: stri
     }
 };
 
+const getMarksheetByStudentIdAndSemesterDal = async (studentId: string, semester: string): Promise<any> => {
+    try {
+        const marksheet = await MarksheetModel.findOne({ studentId, semester })
+            .populate({
+                path: 'studentId',
+                select: 'registrationNo candidateName motherName fatherName gender dateOfBirth courseType faculty course stream year monthSession session duration photo signature isMarksheetAndCertificateApproved',
+            })
+            .populate({
+                path: 'courseId',
+                select: 'name code duration description',
+            })
+            .lean();
+        
+        return marksheet;
+    } catch (error) {
+        console.log('Error in getMarksheetByStudentIdAndSemesterDal:', error);
+        throw error;
+    }
+};
+
+const findMarksheetByStudentIdAndSemesterDal = async (studentId: string, semester: string): Promise<IMarksheet | null> => {
+    try {
+        const marksheet = await MarksheetModel.findOne({ studentId, semester });
+        return marksheet;
+    } catch (error) {
+        console.log('Error in findMarksheetByStudentIdAndSemesterDal:', error);
+        throw error;
+    }
+};
+
 export default {
     uploadMarksheetDal,
     getAllMarksheetsDal,
     getMarksheetByStudentIdDal,
     updateMarksheetDal,
-    showMarksheetWithFullStudentDataDal
+    showMarksheetWithFullStudentDataDal,
+    getMarksheetByStudentIdAndSemesterDal,
+    findMarksheetByStudentIdAndSemesterDal
 };
 

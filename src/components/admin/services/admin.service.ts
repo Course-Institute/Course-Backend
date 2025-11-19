@@ -169,45 +169,82 @@ const getAllCentersService = async ({
 const approveStudentMarksheetService = async ({
     registrationNo,
     subjects,
-    marksheetId
+    marksheetId,
+    semester
 }: {
     registrationNo: string;
     subjects?: SubjectMarks[];
     marksheetId?: string;
+    semester?: string;
 }): Promise<{
     status: boolean,
     message: string,
     data: IStudent | null
 }> => {
     try {
-        // If marksheetId and subjects are provided, update the marksheet
-        if (marksheetId && subjects && subjects.length > 0) {
-            // Get student by registration number to get studentId
-            const student = await studentDal.getStudentByRegistrationNo(registrationNo);
-            if (!student) {
-                throw new Error('Student not found');
-            }
-            
-            await marksheetService.uploadOrUpdateMarksheet({
-                marksheetId,
-                subjects,
-                studentId: student._id.toString()
-            });
+        // Validate required fields when semester is provided
+        if (semester && !marksheetId) {
+            throw new Error('marksheetId is required when approving a specific semester');
         }
 
-        // Update student approval status
-        const updatedStudent = await studentDal.approveStudentMarksheetDal({ registrationNo });
+        // Get student by registration number
+        const student = await studentDal.getStudentByRegistrationNo(registrationNo);
+        if (!student) {
+            throw new Error('Student not found');
+        }
+
+        // If marksheetId is provided, validate and update the marksheet
+        if (marksheetId) {
+            // Import MarksheetModel to validate marksheet
+            const { MarksheetModel } = await import('../../marksheets/models/marksheet.model.js');
+            
+            // Find marksheet
+            const marksheet = await MarksheetModel.findById(marksheetId);
+            if (!marksheet) {
+                throw new Error('Marksheet not found');
+            }
+
+            // Validate marksheet belongs to student
+            if (marksheet.studentId.toString() !== student._id.toString()) {
+                throw new Error('Marksheet does not belong to this student');
+            }
+
+            // If semester is provided, validate it matches the marksheet
+            if (semester && marksheet.semester !== semester) {
+                throw new Error('Marksheet does not belong to this semester');
+            }
+
+            // Update marksheet subjects if provided
+            if (subjects && subjects.length > 0) {
+                await marksheetService.uploadOrUpdateMarksheet({
+                    marksheetId,
+                    subjects,
+                    studentId: student._id.toString(),
+                    semester: semester || marksheet.semester
+                });
+            }
+        }
+
+        // Update student approval status with semester
+        const updatedStudent = await studentDal.approveStudentMarksheetDal({ 
+            registrationNo,
+            semester 
+        });
+        
+        if (!updatedStudent?.data) {
+            throw new Error('Failed to update student approval status');
+        }
         
         return {
             status: true,
-            message: "Marksheet approved successfully",
-            data: updatedStudent?.data
+            message: semester ? `Semester ${semester} marksheet approved successfully` : "Marksheet approved successfully",
+            data: updatedStudent.data
         };
-    } catch (error) {
+    } catch (error: any) {
         console.error(error, "Failed to approve marksheet | service");
         return {
             status: false,
-            message: `${error} | Failed to approve marksheet | service `,
+            message: error?.message || `Failed to approve marksheet | service`,
             data: null
         };
     }

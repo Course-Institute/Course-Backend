@@ -39,3 +39,4 @@ const Inquiry: Model<InquiryDoc> = mongoose.models.Inquiry || mongoose.model<Inq
 export default Inquiry;
 
 
+

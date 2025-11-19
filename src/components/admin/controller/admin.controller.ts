@@ -310,20 +310,53 @@ const getAllCentersController = async (req: Request, res: Response): Promise<Res
 
 const approveStudentMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { registrationNo, subjects, marksheetId } = req.body;
+        const { registrationNo, subjects, marksheetId, semester } = req.body;
+
+        // Validate required fields
+        if (!registrationNo) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Registration number is required',
+                data: null
+            });
+        }
+
+        // If semester is provided, marksheetId is required
+        if (semester && !marksheetId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'marksheetId is required when approving a specific semester',
+                data: null
+            });
+        }
 
         // Call the service to approve the marksheet
         const result = await adminService.approveStudentMarksheetService({
             registrationNo,
             subjects,
-            marksheetId
+            marksheetId,
+            semester
         });
+
+        if (!result.status) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: result.message || 'Failed to approve marksheet',
+                data: null
+            });
+        }
 
         return sendResponse({
             res,
             statusCode: 200,
             status: true,
-            message: 'Marksheet approved successfully',
+            message: result.message || 'Marksheet approved successfully',
             data: result,
         });
     } catch (error: any) {
@@ -331,7 +364,7 @@ const approveStudentMarksheetController = async (req: Request, res: Response): P
             res,
             statusCode: 400,
             status: false,
-            message: 'Failed to approve marksheet',
+            message: error.message || 'Failed to approve marksheet',
             error: error.message
         });
     }

@@ -277,7 +277,7 @@ const getAllStudents = async ({
         
         // Get students with pagination
         const students = await StudentModel.find(query)
-            .select('registrationNo candidateName emailAddress contactNumber grade course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated')
+            .select('registrationNo candidateName emailAddress contactNumber grade course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated whichSemesterMarksheetIsGenerated approvedSemesters')
             .populate({path: 'centerId'})
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -318,24 +318,67 @@ const getStudentByRegistrationNo = async (registrationNo: string) => {
 
 const approveStudentMarksheetDal = async ({
     registrationNo,
-    studentId
+    studentId,
+    semester
 }:{
     registrationNo?: string
     studentId?: string
+    semester?: string
 }) => {
     try {
         if(studentId) {
             registrationNo = (await StudentModel.findById(studentId).select('registrationNo').lean())?.registrationNo;
         }
-         const updatedStudent = await StudentModel.findOneAndUpdate(
-           { registrationNo: registrationNo },
-           { $set: { isMarksheetAndCertificateApproved: true } },
-           { new: true, runValidators: true }
-         );
+
+        // Find the student
+        const student = await StudentModel.findOne({ registrationNo: registrationNo });
+        
+        if (!student) {
+            return {
+                status: false,
+                message: "Student not found",
+                data: null
+            };
+        }
+
+        // If semester is provided, update approvedSemesters array
+        if (semester) {
+            // Initialize approvedSemesters array if it doesn't exist
+            if (!student.approvedSemesters) {
+                student.approvedSemesters = [];
+            }
+
+            // Add semester to approved array if not already present
+            if (!student.approvedSemesters.includes(semester)) {
+                student.approvedSemesters.push(semester);
+                // Sort array to keep it organized
+                student.approvedSemesters.sort();
+            }
+
+            // Set isMarksheetAndCertificateApproved to true if at least one semester is approved
+            if (student.approvedSemesters.length > 0) {
+                student.isMarksheetAndCertificateApproved = true;
+            }
+
+            await student.save();
+        } else {
+            // Backward compatibility: if no semester provided, set isMarksheetAndCertificateApproved to true
+            const updatedStudent = await StudentModel.findOneAndUpdate(
+                { registrationNo: registrationNo },
+                { $set: { isMarksheetAndCertificateApproved: true } },
+                { new: true, runValidators: true }
+            );
+            return {
+                status: true,
+                message: "Student Approved successfully",
+                data: updatedStudent as IStudent
+            };
+        }
+
         return {
             status: true,
-            message: "Student Approved successfully",
-            data: updatedStudent as IStudent
+            message: semester ? `Semester ${semester} marksheet approved successfully` : "Student Approved successfully",
+            data: student as IStudent
         };
     } catch (error) {
         console.error(error);
@@ -369,6 +412,39 @@ const updateMarksheetGenerationStatusDal = async ({studentId, isMarksheetGenerat
         console.error(error);
         throw error;
     }
+}
+
+const updateStudentSemesterMarksheetArrayDal = async ({studentId, semester}: {studentId: string, semester: string}) => {
+    try {
+        // Find the student
+        const student = await StudentModel.findById(studentId);
+        
+        if (!student) {
+            throw new Error('Student not found');
+        }
+
+        // Initialize array if it doesn't exist
+        if (!student.whichSemesterMarksheetIsGenerated) {
+            student.whichSemesterMarksheetIsGenerated = [];
+        }
+
+        // Add semester to array if not already present
+        if (!student.whichSemesterMarksheetIsGenerated.includes(semester)) {
+            student.whichSemesterMarksheetIsGenerated.push(semester);
+            // Sort array to keep it organized
+            student.whichSemesterMarksheetIsGenerated.sort();
+        }
+
+        // Also set isMarksheetGenerated to true for backward compatibility
+        student.isMarksheetGenerated = true;
+
+        await student.save();
+        
+        return student;
+    } catch (error) {
+        console.error('Error in updateStudentSemesterMarksheetArrayDal:', error);
+        throw error;
+    }
 }   
 
 export default {    
@@ -381,5 +457,6 @@ export default {
     approveStudentDal,
     approveStudentMarksheetDal,
     findStudentById,
-    updateMarksheetGenerationStatusDal
+    updateMarksheetGenerationStatusDal,
+    updateStudentSemesterMarksheetArrayDal
 };

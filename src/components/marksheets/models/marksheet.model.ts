@@ -13,7 +13,10 @@ export interface SubjectMarks {
 
 interface IMarksheet extends Document {
   studentId?: mongoose.Types.ObjectId;
+  semester?: string;
+  courseId?: mongoose.Types.ObjectId;
   subjects?: SubjectMarks[];
+  role?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -41,12 +44,23 @@ const subjectMarksSchema = new Schema<SubjectMarks>(
 const marksheetSchema = new Schema<IMarksheet>(
   {
     studentId: { type: Schema.Types.ObjectId, ref: 'students', required: true },
+    semester: { type: String, required: true },
+    courseId: { type: Schema.Types.ObjectId, ref: 'courses', required: true },
     subjects: [subjectMarksSchema],
+    role: { type: String },
   },
   {
     timestamps: true
   }
 );
+
+// Create compound unique index on (studentId, semester) to prevent duplicates
+marksheetSchema.index({ studentId: 1, semester: 1 }, { unique: true });
+
+// Create individual indexes for faster lookups
+marksheetSchema.index({ studentId: 1 });
+marksheetSchema.index({ semester: 1 });
+marksheetSchema.index({ courseId: 1 });
 
 const MarksheetModel: Model<IMarksheet> = mongoose.model<IMarksheet>(
   "marksheets",
