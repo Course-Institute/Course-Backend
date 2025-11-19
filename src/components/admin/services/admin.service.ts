@@ -205,6 +205,10 @@ const approveStudentMarksheetService = async ({
             }
 
             // Validate marksheet belongs to student
+            if (!marksheet.studentId) {
+                throw new Error('Marksheet does not have a valid student ID');
+            }
+            
             if (marksheet.studentId.toString() !== student._id.toString()) {
                 throw new Error('Marksheet does not belong to this student');
             }
