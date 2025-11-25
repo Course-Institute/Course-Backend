@@ -31,6 +31,7 @@ const getCourseByIdDal = async (courseId: string): Promise<ICourse | null> => {
 const createCourseDal = async (courseData: {
   name: string;
   code?: string;
+  coursesType?: string;
   duration?: number;
   description?: string;
 }): Promise<ICourse> => {
@@ -57,6 +58,7 @@ const updateCourseDal = async (
   updateData: {
     name?: string;
     code?: string;
+    coursesType?: string;
     duration?: number;
     description?: string;
   }

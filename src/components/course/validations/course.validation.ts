@@ -37,6 +37,13 @@ export const createCourseSchema = Joi.object({
     .messages({
       'string.max': 'Description must not exceed 1000 characters',
     }),
+  coursesType: Joi.string()
+    .max(100)
+    .allow('', null)
+    .optional()
+    .messages({
+      'string.max': 'Course type must not exceed 100 characters',
+    }),
 });
 
 export const updateCourseSchema = createCourseSchema;

@@ -14,6 +14,7 @@ const getAllCoursesController = async (
       _id: String(course._id),
       name: course.name,
       code: course.code || undefined,
+      coursesType: course.coursesType || undefined,
       duration: course.duration || undefined,
       description: course.description || undefined,
       createdAt: course.createdAt ? new Date(course.createdAt).toISOString() : undefined,
@@ -43,11 +44,12 @@ const createCourseController = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { name, code, duration, description } = req.body;
+    const { name, code, coursesType, duration, description } = req.body;
 
     const course = await courseService.createCourseService({
       name,
       code,
+      coursesType,
       duration,
       description,
     });
@@ -57,6 +59,7 @@ const createCourseController = async (
       _id: String(course._id),
       name: course.name,
       code: course.code || undefined,
+      coursesType: course.coursesType || undefined,
       duration: course.duration || undefined,
       description: course.description || undefined,
       createdAt: course.createdAt ? new Date(course.createdAt).toISOString() : new Date().toISOString(),
@@ -96,7 +99,7 @@ const updateCourseController = async (
 ): Promise<Response> => {
   try {
     const { courseId } = req.params;
-    const { name, code, duration, description } = req.body;
+    const { name, code, coursesType, duration, description } = req.body;
 
     if (!courseId) {
       return sendResponse({
@@ -110,6 +113,7 @@ const updateCourseController = async (
     const course = await courseService.updateCourseService(courseId, {
       name,
       code,
+      coursesType,
       duration,
       description,
     });
@@ -128,6 +132,7 @@ const updateCourseController = async (
       _id: String(course._id),
       name: course.name,
       code: course.code || undefined,
+      coursesType: course.coursesType || undefined,
       duration: course.duration || undefined,
       description: course.description || undefined,
       createdAt: course.createdAt ? new Date(course.createdAt).toISOString() : undefined,

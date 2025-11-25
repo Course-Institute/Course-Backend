@@ -28,6 +28,7 @@ const getCourseByIdService = async (courseId: string): Promise<ICourse | null> =
 const createCourseService = async (courseData: {
   name: string;
   code?: string;
+  coursesType?: string;
   duration?: number;
   description?: string;
 }): Promise<ICourse> => {
@@ -45,6 +46,7 @@ const updateCourseService = async (
   updateData: {
     name?: string;
     code?: string;
+    coursesType?: string;
     duration?: number;
     description?: string;
   }
