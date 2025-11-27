@@ -32,7 +32,7 @@ const getAllMarksheetsController = async (req: Request, res: Response): Promise<
 
 const uploadMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { studentId, semester, courseId, subjects, marksheetId, role } = req.body;
+        const { studentId, semester, courseId, serialNo, subjects, marksheetId, role } = req.body;
 
         if (!studentId) {
             return sendResponse({
@@ -83,6 +83,7 @@ const uploadMarksheetController = async (req: Request, res: Response): Promise<R
             studentId,
             semester,
             courseId,
+            serialNo,
             subjects: subjects as SubjectMarks[],
             marksheetId,
             role
@@ -146,6 +147,7 @@ const getMarksheetController = async (req: Request, res: Response): Promise<Resp
             id: marksheet._id.toString(),
             studentId: marksheet.studentId?._id?.toString() || marksheet.studentId?.toString() || '',
             registrationNo: marksheet.studentId?.registrationNo || '',
+            serialNo: marksheet.serialNo || null,
             subjects: marksheet.subjects?.map((subject: any, index: number) => ({
                 id: subject.id || index.toString(),
                 subjectName: subject.subjectName || '',
@@ -235,7 +237,7 @@ const showMarksheetController = async (req: Request, res: Response): Promise<Res
 
 const updateMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { marksheetId, studentId, semester, subjects, role } = req.body;
+        const { marksheetId, studentId, semester, serialNo, subjects, role } = req.body;
 
         if (!marksheetId) {
             return sendResponse({
@@ -279,6 +281,7 @@ const updateMarksheetController = async (req: Request, res: Response): Promise<R
             marksheetId,
             studentId,
             semester,
+            serialNo,
             subjects: subjects as SubjectMarks[],
             role
         });

@@ -1,12 +1,16 @@
 import { IMarksheet, MarksheetModel, SubjectMarks } from '../models/marksheet.model.js';
 import mongoose from 'mongoose';
 
-const uploadMarksheetDal = async ({ studentId, semester, courseId, subjects, role }: { studentId: string, semester: string, courseId: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
+const uploadMarksheetDal = async ({ studentId, semester, courseId, serialNo, subjects, role }: { studentId: string, semester: string, courseId: string, serialNo?: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
     try {
-        const result = await MarksheetModel.create({ studentId, semester, courseId, subjects, role });
+        const result = await MarksheetModel.create({ studentId, semester, courseId, serialNo, subjects, role });
         return result;
-    } catch (error) {
+    } catch (error: any) {
         console.log('Error in uploadMarksheetDal:', error);
+        // Handle duplicate serialNo error
+        if (error.code === 11000 && error.keyPattern?.serialNo) {
+            throw new Error('Serial number already exists. Please use a different serial number.');
+        }
         throw error;
     }
 }
@@ -104,11 +108,15 @@ const showMarksheetWithFullStudentDataDal = async (studentId: string): Promise<a
     }
 };
 
-const updateMarksheetDal = async ({ marksheetId, subjects, role }: { marksheetId: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
+const updateMarksheetDal = async ({ marksheetId, serialNo, subjects, role }: { marksheetId: string, serialNo?: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
     try {
         const updateData: any = { subjects: subjects };
         if (role) {
             updateData.role = role;
+        }
+        // Update serialNo only if provided (preserve existing if not provided)
+        if (serialNo !== undefined) {
+            updateData.serialNo = serialNo || null;
         }
         
         const result = await MarksheetModel.findByIdAndUpdate(
@@ -122,8 +130,12 @@ const updateMarksheetDal = async ({ marksheetId, subjects, role }: { marksheetId
         }
         
         return result;
-    } catch (error) {
+    } catch (error: any) {
         console.log('Error in updateMarksheetDal:', error);
+        // Handle duplicate serialNo error
+        if (error.code === 11000 && error.keyPattern?.serialNo) {
+            throw new Error('Serial number already exists. Please use a different serial number.');
+        }
         throw error;
     }
 };

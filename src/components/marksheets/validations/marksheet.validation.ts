@@ -27,6 +27,14 @@ export const validateCreateMarksheet = (req: Request, res: Response, next: NextF
         errors.push('Course ID is required and must be a string when creating a new marksheet');
     }
 
+    // Validate serialNo (optional, but if provided must be exactly 6 digits)
+    const { serialNo } = req.body;
+    if (serialNo !== undefined && serialNo !== null && serialNo !== '') {
+        if (typeof serialNo !== 'string' || !/^\d{6}$/.test(serialNo)) {
+            errors.push('Serial number must be exactly 6 digits');
+        }
+    }
+
     // Validate subjects array
     if (!subjects || !Array.isArray(subjects) || subjects.length === 0) {
         errors.push('At least one subject is required');

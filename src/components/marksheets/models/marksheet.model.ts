@@ -15,6 +15,7 @@ interface IMarksheet extends Document {
   studentId?: mongoose.Types.ObjectId;
   semester?: string;
   courseId?: mongoose.Types.ObjectId;
+  serialNo?: string;
   subjects?: SubjectMarks[];
   role?: string;
   createdAt?: Date;
@@ -46,6 +47,7 @@ const marksheetSchema = new Schema<IMarksheet>(
     studentId: { type: Schema.Types.ObjectId, ref: 'students', required: true },
     semester: { type: String, required: true },
     courseId: { type: Schema.Types.ObjectId, ref: 'courses', required: true },
+    serialNo: { type: String, required: false },
     subjects: [subjectMarksSchema],
     role: { type: String },
   },
@@ -61,6 +63,8 @@ marksheetSchema.index({ studentId: 1, semester: 1 }, { unique: true });
 marksheetSchema.index({ studentId: 1 });
 marksheetSchema.index({ semester: 1 });
 marksheetSchema.index({ courseId: 1 });
+// Create unique sparse index on serialNo to ensure uniqueness when provided
+marksheetSchema.index({ serialNo: 1 }, { unique: true, sparse: true });
 
 const MarksheetModel: Model<IMarksheet> = mongoose.model<IMarksheet>(
   "marksheets",

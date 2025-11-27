@@ -83,6 +83,7 @@ const uploadOrUpdateMarksheet = async ({
     studentId, 
     semester,
     courseId,
+    serialNo,
     subjects, 
     marksheetId,
     role
@@ -90,6 +91,7 @@ const uploadOrUpdateMarksheet = async ({
     studentId: string, 
     semester?: string,
     courseId?: string,
+    serialNo?: string,
     subjects: SubjectMarks[], 
     marksheetId?: string,
     role?: string
@@ -136,6 +138,7 @@ const uploadOrUpdateMarksheet = async ({
         if (marksheetId) {
             marksheet = await marksheetDal.updateMarksheetDal({
                 marksheetId,
+                serialNo,
                 subjects: processedSubjects,
                 role
             });
@@ -166,6 +169,7 @@ const uploadOrUpdateMarksheet = async ({
                     : String(existingMarksheet._id);
                 marksheet = await marksheetDal.updateMarksheetDal({
                     marksheetId: marksheetIdString,
+                    serialNo,
                     subjects: processedSubjects,
                     role
                 });
@@ -188,6 +192,7 @@ const uploadOrUpdateMarksheet = async ({
                     studentId,
                     semester,
                     courseId,
+                    serialNo,
                     subjects: processedSubjects,
                     role
                 });
@@ -266,12 +271,14 @@ const updateMarksheetService = async ({
     marksheetId,
     studentId,
     semester,
+    serialNo,
     subjects,
     role
 }: {
     marksheetId: string;
     studentId: string;
     semester: string;
+    serialNo?: string;
     subjects: SubjectMarks[];
     role?: string;
 }): Promise<IMarksheet> => {
@@ -310,6 +317,7 @@ const updateMarksheetService = async ({
         // Update the marksheet
         const updatedMarksheet = await marksheetDal.updateMarksheetDal({
             marksheetId,
+            serialNo,
             subjects: processedSubjects,
             role
         });
