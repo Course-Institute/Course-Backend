@@ -372,7 +372,21 @@ const approveStudentMarksheetController = async (req: Request, res: Response): P
 
 const listStudentsForAdminOrCenterController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { page = 1, limit = 10, search, faculty, course, session, centerId } = req.query;
+        const { 
+            page = 1, 
+            limit = 10, 
+            search, 
+            faculty, 
+            course, 
+            stream,
+            year,
+            session, 
+            isApprovedByAdmin,
+            isMarksheetGenerated,
+            isMarksheetAndCertificateApproved,
+            programCategory,
+            centerId 
+        } = req.query;
         
         console.log('Controller - req.user:', req.user);
         console.log('Controller - user role:', req.user?.role);
@@ -399,7 +413,13 @@ const listStudentsForAdminOrCenterController = async (req: Request, res: Respons
             search: search as string,
             faculty: faculty as string,
             course: course as string,
+            stream: stream as string,
+            year: year as string,
             session: session as string,
+            isApprovedByAdmin: isApprovedByAdmin as string,
+            isMarksheetGenerated: isMarksheetGenerated as string,
+            isMarksheetAndCertificateApproved: isMarksheetAndCertificateApproved as string,
+            programCategory: programCategory as string,
             centerId: filteredCenterId,
         });
 
@@ -407,7 +427,7 @@ const listStudentsForAdminOrCenterController = async (req: Request, res: Respons
             res,
             statusCode: 200,
             status: true,
-            message: 'Students retrieved successfully.',
+            message: 'Students fetched successfully',
             data: result
         });
     } catch (error: any) {

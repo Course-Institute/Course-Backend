@@ -25,7 +25,7 @@ interface IStudent extends Document {
     pincode?: string;
     courseType?: string;
     grade?: string;
-    course?: string;
+    course?: Types.ObjectId | string;
     stream?: string;
     year?: string;
     monthSession?: string;
@@ -71,7 +71,7 @@ const studentSchema = new Schema<IStudent>({
     pincode: { type: String, required: false },
     courseType: { type: String, required: false },
     grade: { type: String, required: false },
-    course: { type: String, required: false },
+    course: { type: mongoose.Schema.Types.ObjectId, ref: 'courses', required: false },
     stream: { type: String, required: false },
     year: { type: String, required: false },
     monthSession: { type: String, required: false },

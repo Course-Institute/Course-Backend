@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { UserModel } from "../../users/models/user.model.js";
 import { IStudent, StudentModel } from "../model/student.model.js";
+import { CourseModel } from "../../course/models/course.model.js";
 
 const studentListAutoCompleteDal = async ({query, centerId}: {query: string, centerId: string}) => {
     try {
@@ -164,7 +165,7 @@ const addStudentDal = async ({
             pincode: pincode,
             courseType: courseType,
             grade: grade,
-            course: course,
+            course: course ? new mongoose.Types.ObjectId(course) : undefined,
             stream: stream,
             year: year,
             monthSession: monthSession,
@@ -239,7 +240,13 @@ const getAllStudents = async ({
     search,
     faculty,
     course,
+    stream,
+    year,
     session,
+    isApprovedByAdmin,
+    isMarksheetGenerated,
+    isMarksheetAndCertificateApproved,
+    programCategory,
     centerId
 }: {
     page?: number;
@@ -247,38 +254,135 @@ const getAllStudents = async ({
     search?: string;
     faculty?: string;
     course?: string;
+    stream?: string;
+    year?: string;
     session?: string;
+    isApprovedByAdmin?: string;
+    isMarksheetGenerated?: string;
+    isMarksheetAndCertificateApproved?: string;
+    programCategory?: string;
     centerId?: string;
 }) => {
     try {
         // Build query object
         const query: any = {};
         
-        // Add search functionality
-        if (search) {
+        // Add search functionality - search across name, registration number, or email
+        if (search && search.trim()) {
             const searchConditions: any[] = [
                 { candidateName: { $regex: search, $options: 'i' } },
                 { registrationNo: { $regex: search, $options: 'i' } },
-                { emailAddress: { $regex: search, $options: 'i' } },
-                { contactNumber: { $regex: search, $options: 'i' } }
+                { emailAddress: { $regex: search, $options: 'i' } }
             ];
             query.$or = searchConditions;
-
         }
-        // Check if search term is a valid ObjectId for centerId search
+        
+        // Exact match filters
+        if (faculty && faculty.trim()) {
+            query.faculty = faculty;
+        }
+        if (stream && stream.trim()) {
+            query.stream = stream;
+        }
+        if (year && year.trim()) {
+            query.year = year;
+        }
+        if (session && session.trim()) {
+            query.session = session;
+        }
+
+        // Resolve course and courseType filters against Course collection
+        const requestedCourseIds: mongoose.Types.ObjectId[] = [];
+
+        // Helper to escape regex
+        const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+        // course filter (expects course _id, but will also resolve by name for backward compatibility)
+        if (course && course.trim()) {
+            if (mongoose.isValidObjectId(course)) {
+                requestedCourseIds.push(new mongoose.Types.ObjectId(course));
+            } else {
+                const courseByName = await CourseModel.findOne({
+                    name: { $regex: `^${escapeRegex(course)}$`, $options: 'i' }
+                }).select('_id').lean();
+                if (courseByName?._id) {
+                    requestedCourseIds.push(courseByName._id as mongoose.Types.ObjectId);
+                } else {
+                    // If a course filter was provided but no course matched, return empty result early
+                    return {
+                        students: [],
+                        pagination: {
+                            currentPage: page,
+                            totalPages: 0,
+                            totalCount: 0,
+                            limit,
+                            hasNextPage: false,
+                            hasPrevPage: page > 1
+                        }
+                    };
+                }
+            }
+        }
+
+        // programCategory is mapped to courseType (coursesType field in Course model)
+        if (programCategory && programCategory.trim()) {
+            const matchingCourses = await CourseModel.find({
+                coursesType: { $regex: `^${escapeRegex(programCategory)}$`, $options: 'i' }
+            }).select('_id').lean();
+
+            matchingCourses.forEach(c => {
+                if (c._id) {
+                    requestedCourseIds.push(c._id as mongoose.Types.ObjectId);
+                }
+            });
+
+            // If courseType filter was provided but no courses match, return empty early
+            if (requestedCourseIds.length === 0) {
+                return {
+                    students: [],
+                    pagination: {
+                        currentPage: page,
+                        totalPages: 0,
+                        totalCount: 0,
+                        limit,
+                        hasNextPage: false,
+                        hasPrevPage: page > 1
+                    }
+                };
+            }
+        }
+
+        if (requestedCourseIds.length > 0) {
+            query.course = { $in: requestedCourseIds };
+        }
+        
+        // Boolean filters - convert string to boolean
+        if (isApprovedByAdmin !== undefined && isApprovedByAdmin !== null && isApprovedByAdmin !== '') {
+            query.isApprovedByAdmin = isApprovedByAdmin === 'true';
+        }
+        if (isMarksheetGenerated !== undefined && isMarksheetGenerated !== null && isMarksheetGenerated !== '') {
+            query.isMarksheetGenerated = isMarksheetGenerated === 'true';
+        }
+        if (isMarksheetAndCertificateApproved !== undefined && isMarksheetAndCertificateApproved !== null && isMarksheetAndCertificateApproved !== '') {
+            query.isMarksheetAndCertificateApproved = isMarksheetAndCertificateApproved === 'true';
+        }
+        
+        // Center ID filter
         if (centerId) {
             query.centerId = new mongoose.Types.ObjectId(centerId);
         }
+        
         // Calculate pagination
         const skip = (page - 1) * limit;
         
-        // Get total count for pagination
+        // Get total count for pagination (based on filtered results)
         const totalCount = await StudentModel.countDocuments(query);
         
         // Get students with pagination
         const students = await StudentModel.find(query)
-            .select('registrationNo candidateName emailAddress contactNumber grade course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated whichSemesterMarksheetIsGenerated approvedSemesters')
-            .populate({path: 'centerId'})
+            .select('_id registrationNo candidateName emailAddress contactNumber grade course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated whichSemesterMarksheetIsGenerated approvedSemesters faculty')
+            .populate({ path: 'centerId' })
+            .populate({ path: 'course', select: 'name coursesType code duration' })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)

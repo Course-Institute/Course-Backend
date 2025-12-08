@@ -13,7 +13,13 @@ const listAllStudents = async ({
     search,
     faculty,
     course,
+    stream,
+    year,
     session,
+    isApprovedByAdmin,
+    isMarksheetGenerated,
+    isMarksheetAndCertificateApproved,
+    programCategory,
     centerId
 }: {
     page?: number;
@@ -21,7 +27,13 @@ const listAllStudents = async ({
     search?: string;
     faculty?: string;
     course?: string;
+    stream?: string;
+    year?: string;
     session?: string;
+    isApprovedByAdmin?: string;
+    isMarksheetGenerated?: string;
+    isMarksheetAndCertificateApproved?: string;
+    programCategory?: string;
     centerId?: string;
 }) => {
     try {
@@ -31,7 +43,13 @@ const listAllStudents = async ({
             search,
             faculty,
             course,
+            stream,
+            year,
             session,
+            isApprovedByAdmin,
+            isMarksheetGenerated,
+            isMarksheetAndCertificateApproved,
+            programCategory,
             centerId
         });
         const transformedResult = result.students.map((student: any) => ({
@@ -40,6 +58,11 @@ const listAllStudents = async ({
             centerName: student.centerId?.centerDetails?.centerName,
             centerCode: student.centerId?.centerDetails?.centerCode,
             centerId: student.centerId?._id.toString(),
+            courseId: student.course?._id?.toString?.() || student.course?.toString?.(),
+            courseName: student.course?.name,
+            courseType: student.course?.coursesType || student.courseType,
+            course: student.course?.name || student.course, // backward compatibility for existing consumers
+            studentId: student._id?.toString(),
         }));
 
         return {
