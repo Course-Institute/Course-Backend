@@ -10,6 +10,7 @@ router.get('/getCenterAutoCompleteList', centerController.centerListAutoComplete
 // Protected center routes (require authentication and center role)
 // Must be placed before /:centerId route to avoid route conflicts
 router.get('/dashboard-stats', authenticateToken, authorizeCenter, centerController.getDashboardStatsController);
+router.get('/getCenterProfile', authenticateToken, authorizeCenter, centerController.getCenterProfileController);
 
 // New center management routes
 router.post('/create', centerController.createCenterController);

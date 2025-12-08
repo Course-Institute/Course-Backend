@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import adminService from '../services/admin.service.js';
 import { sendResponse } from '../../../utils/response.util.js';
 import { CreateCenterRequest } from '../../centers/models/center.model.js';
+import centerService from '../../centers/services/center.service.js';
 
 const listAllStudentsController = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -442,6 +443,54 @@ const listStudentsForAdminOrCenterController = async (req: Request, res: Respons
     }
 };
 
+const getCenterByIdController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { centerId } = req.query;
+
+        // Validate centerId parameter
+        if (!centerId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Center ID is required'
+            });
+        }
+
+        // Get base URL for photo formatting
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+
+        // Get center profile with formatted URLs
+        const center = await centerService.getCenterProfile(centerId as string, baseUrl);
+
+        if (!center) {
+            return sendResponse({
+                res,
+                statusCode: 404,
+                status: false,
+                message: 'Center not found'
+            });
+        }
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Center profile fetched successfully',
+            data: center
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 500,
+            status: false,
+            message: error.message || 'Internal server error. Please try again later.'
+        });
+    }
+};
+
 // const approveCenterController = async (req: Request, res: Response): Promise<Response> => {
 
 // }
@@ -457,5 +506,6 @@ export default {
     getAllCentersController,
     approveStudentMarksheetController,
     listStudentsForAdminOrCenterController,
+    getCenterByIdController,
     // approveCenterController,
 };

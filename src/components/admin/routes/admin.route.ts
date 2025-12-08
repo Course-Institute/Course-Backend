@@ -38,6 +38,7 @@ router.post('/register-center', uploadCenterFiles.fields([
     { name: 'signature', maxCount: 1 }
 ]), multerErrorHandler, validateCenterRegistration, adminController.registerCenterController);
 router.post('/getAllCentersList', adminController.getAllCentersController);
+router.get('/getCenterById', adminController.getCenterByIdController);
 
 router.post('/create-bill', billController.createBillController);
 router.post('/getBillsList', billController.getAllBillsController);

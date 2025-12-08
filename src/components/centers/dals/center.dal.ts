@@ -74,7 +74,14 @@ const createCenterDal = async (centerData: CreateCenterRequest): Promise<CenterM
 
 const getCenterByIdDal = async (centerId: string): Promise<CenterModel | null> => {
   try {
-    const center = centersStorage.find(c => c.id === centerId);
+    // Convert centerId string to ObjectId for MongoDB query
+    let center;
+    if (mongoose.Types.ObjectId.isValid(centerId)) {
+      center = await CenterModel.findById(centerId).lean();
+    } else {
+      // If not a valid ObjectId, try to find by centerCode
+      center = await CenterModel.findOne({ 'centerDetails.centerCode': centerId }).lean();
+    }
     return center || null;
   } catch (error) {
     console.log(error);

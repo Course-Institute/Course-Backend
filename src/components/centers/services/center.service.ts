@@ -86,6 +86,81 @@ const getCenterById = async (centerId: string): Promise<CenterModel | null> => {
     }
 }
 
+const getCenterProfile = async (centerId: string, baseUrl?: string): Promise<CenterModel | null> => {
+    try {
+        const center = await centerDal.getCenterByIdDal(centerId);
+        if (!center) {
+            return null;
+        }
+
+        // Format photo URLs to full URLs
+        // Files are stored as just filenames (e.g., "photo-1234567890-987654321.jpg")
+        // They need to be formatted as "/uploads/filename" for the API
+        const formatUrl = (url?: string): string | undefined => {
+            if (!url || url.trim() === '') return undefined;
+            
+            // If already a full URL (http/https), return as is
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+            
+            // Remove any leading slashes or "uploads/" prefix to normalize
+            let cleanUrl = url.trim();
+            if (cleanUrl.startsWith('/uploads/')) {
+                cleanUrl = cleanUrl.replace('/uploads/', '');
+            } else if (cleanUrl.startsWith('uploads/')) {
+                cleanUrl = cleanUrl.replace('uploads/', '');
+            } else if (cleanUrl.startsWith('/')) {
+                cleanUrl = cleanUrl.substring(1);
+            }
+            
+            // Format as /uploads/filename
+            const formattedUrl = `/uploads/${cleanUrl}`;
+            
+            // If baseUrl is provided, prepend it to make full URL
+            return baseUrl ? `${baseUrl}${formattedUrl}` : formattedUrl;
+        };
+
+        // Format all photo URLs in the center object
+        const centerDetailsWithPhoto = center.centerDetails as any;
+        const formattedCenter: any = {
+            ...center,
+            centerDetails: {
+                ...center.centerDetails,
+                ...(centerDetailsWithPhoto.photo && { photo: formatUrl(centerDetailsWithPhoto.photo) })
+            },
+            authorizedPersonDetails: {
+                ...center.authorizedPersonDetails,
+                photo: formatUrl(center.authorizedPersonDetails.photo)
+            },
+            infrastructureDetails: {
+                ...center.infrastructureDetails,
+                infraPhotos: center.infrastructureDetails.infraPhotos?.map(photo => formatUrl(photo) || photo)
+            },
+            bankDetails: {
+                ...center.bankDetails,
+                cancelledCheque: formatUrl(center.bankDetails.cancelledCheque)
+            },
+            documentUploads: {
+                ...center.documentUploads,
+                gstCertificate: formatUrl(center.documentUploads.gstCertificate),
+                panCard: formatUrl(center.documentUploads.panCard),
+                addressProof: formatUrl(center.documentUploads.addressProof),
+                directorIdProof: formatUrl(center.documentUploads.directorIdProof)
+            },
+            declaration: {
+                ...center.declaration,
+                signatureUrl: formatUrl(center.declaration.signatureUrl)
+            }
+        };
+
+        return formattedCenter;
+    } catch (error) {
+        console.log('Error in getCenterProfile service:', error);
+        throw error;
+    }
+}
+
 const updateCenter = async (centerId: string, updateData: UpdateCenterRequest): Promise<CenterModel | null> => {
     try {
         // Validate update data
@@ -146,6 +221,7 @@ export default {
     centerListAutoComplete,
     createCenter,
     getCenterById,
+    getCenterProfile,
     updateCenter,
     deleteCenter,
     searchCenters,

@@ -251,10 +251,70 @@ const getDashboardStatsController = async (req: Request, res: Response): Promise
     }
 };
 
+const getCenterProfileController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { centerId } = req.query;
+        const tokenCenterId = req.user?.centerId;
+
+        // Validate centerId parameter
+        if (!centerId) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Center ID is required'
+            });
+        }
+
+        // Validate that center can only access their own profile
+        if (tokenCenterId && tokenCenterId !== centerId) {
+            return sendResponse({
+                res,
+                statusCode: 403,
+                status: false,
+                message: 'You do not have permission to access this resource'
+            });
+        }
+
+        // Get base URL for photo formatting
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+
+        // Get center profile with formatted URLs
+        const center = await centerService.getCenterProfile(centerId as string, baseUrl);
+
+        if (!center) {
+            return sendResponse({
+                res,
+                statusCode: 404,
+                status: false,
+                message: 'Center not found'
+            });
+        }
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: 'Center profile fetched successfully',
+            data: center
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 500,
+            status: false,
+            message: error.message || 'Internal server error. Please try again later.'
+        });
+    }
+};
+
 export default { 
     centerListAutoCompleteController,
     createCenterController,
     getCenterByIdController,
+    getCenterProfileController,
     updateCenterController,
     deleteCenterController,
     searchCentersController,
