@@ -352,10 +352,6 @@ const getAllStudents = async ({
             }
         }
 
-        if (requestedCourseIds.length > 0) {
-            query.course = { $in: requestedCourseIds };
-        }
-        
         // Boolean filters - convert string to boolean
         if (isApprovedByAdmin !== undefined && isApprovedByAdmin !== null && isApprovedByAdmin !== '') {
             query.isApprovedByAdmin = isApprovedByAdmin === 'true';
@@ -375,18 +371,147 @@ const getAllStudents = async ({
         // Calculate pagination
         const skip = (page - 1) * limit;
         
-        // Get total count for pagination (based on filtered results)
-        const totalCount = await StudentModel.countDocuments(query);
+        // Get course names for the requested course IDs to handle string-based course references
+        let requestedCourseNames: string[] = [];
+        if (requestedCourseIds.length > 0) {
+            const courses = await CourseModel.find({
+                _id: { $in: requestedCourseIds }
+            }).select('name').lean();
+            requestedCourseNames = courses.map(c => c.name);
+        }
         
-        // Get students with pagination
-        const students = await StudentModel.find(query)
-            .select('_id registrationNo candidateName emailAddress contactNumber grade course stream session year createdAt dateOfBirth isApprovedByAdmin isMarksheetAndCertificateApproved centerId isMarksheetGenerated whichSemesterMarksheetIsGenerated approvedSemesters faculty')
-            .populate({ path: 'centerId' })
-            .populate({ path: 'course', select: 'name coursesType code duration' })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean();
+        // Build aggregate pipeline to safely handle cases where course might be a string instead of ObjectId
+        const aggregatePipeline: any[] = [
+            { $match: query }
+        ];
+        
+        // Add course filter in aggregate pipeline to handle both ObjectId and string values
+        if (requestedCourseIds.length > 0) {
+            // Convert ObjectIds to strings for comparison
+            const courseIdStrings = requestedCourseIds.map(id => id.toString());
+            aggregatePipeline.push({
+                $match: {
+                    $or: [
+                        // Match by ObjectId
+                        { course: { $in: requestedCourseIds } },
+                        // Match by string representation of ObjectId
+                        {
+                            $expr: {
+                                $in: [
+                                    { $toString: '$course' },
+                                    courseIdStrings
+                                ]
+                            }
+                        },
+                        // Match by string course name (for backward compatibility)
+                        ...(requestedCourseNames.length > 0 ? [{
+                            course: { $in: requestedCourseNames }
+                        }] : [])
+                    ]
+                }
+            });
+        }
+        
+        // Get total count for pagination (need to build count pipeline separately)
+        const countPipeline = [...aggregatePipeline];
+        const totalCountResult = await StudentModel.aggregate([
+            ...countPipeline,
+            { $count: 'total' }
+        ]);
+        const totalCount = totalCountResult[0]?.total || 0;
+        
+        // Use aggregate pipeline to safely handle cases where course might be a string instead of ObjectId
+        const students = await StudentModel.aggregate([
+            ...aggregatePipeline,
+            {
+                $lookup: {
+                    from: 'centers',
+                    localField: 'centerId',
+                    foreignField: '_id',
+                    as: 'centerId'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$centerId',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'courses',
+                    let: { courseRef: '$course' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $or: [
+                                        // Match by ObjectId if courseRef is an ObjectId
+                                        {
+                                            $and: [
+                                                { $ne: ['$$courseRef', null] },
+                                                { $eq: [{ $type: '$$courseRef' }, 'objectId'] },
+                                                { $eq: ['$_id', '$$courseRef'] }
+                                            ]
+                                        },
+                                        // Match by name if courseRef is a string
+                                        {
+                                            $and: [
+                                                { $ne: ['$$courseRef', null] },
+                                                { $eq: [{ $type: '$$courseRef' }, 'string'] },
+                                                { $eq: ['$name', '$$courseRef'] }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                name: 1,
+                                coursesType: 1,
+                                code: 1,
+                                duration: 1
+                            }
+                        }
+                    ],
+                    as: 'course'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$course',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    registrationNo: 1,
+                    candidateName: 1,
+                    emailAddress: 1,
+                    contactNumber: 1,
+                    grade: 1,
+                    course: 1,
+                    stream: 1,
+                    session: 1,
+                    year: 1,
+                    createdAt: 1,
+                    dateOfBirth: 1,
+                    isApprovedByAdmin: 1,
+                    isMarksheetAndCertificateApproved: 1,
+                    centerId: 1,
+                    isMarksheetGenerated: 1,
+                    whichSemesterMarksheetIsGenerated: 1,
+                    approvedSemesters: 1,
+                    faculty: 1
+                }
+            },
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit }
+        ]);
         
         // Calculate pagination info
         const totalPages = Math.ceil(totalCount / limit);
