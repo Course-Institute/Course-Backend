@@ -141,6 +141,16 @@ const addStudentDal = async ({
         // Generate unique registration number
         const registrationNo = await generateRegistrationNumber();
         
+        // Handle course field - expects ObjectId from frontend
+        let courseObjectId: mongoose.Types.ObjectId | undefined = undefined;
+        if (course) {
+            if (mongoose.Types.ObjectId.isValid(course)) {
+                courseObjectId = new mongoose.Types.ObjectId(course);
+            } else {
+                throw new Error(`Invalid course ObjectId: ${course}`);
+            }
+        }
+        
         return await StudentModel.create({
             registrationNo: registrationNo,
             candidateName: candidateName,
@@ -165,7 +175,7 @@ const addStudentDal = async ({
             pincode: pincode,
             courseType: courseType,
             grade: grade,
-            course: course ? new mongoose.Types.ObjectId(course) : undefined,
+            course: courseObjectId,
             stream: stream,
             year: year,
             monthSession: monthSession,
@@ -177,7 +187,7 @@ const addStudentDal = async ({
             aadharBack: aadharBack,
             photo: photo,
             signature: signature,
-            centerId: centerId ? new mongoose.Types.ObjectId(centerId) : null
+            centerId: centerId && mongoose.Types.ObjectId.isValid(centerId) ? new mongoose.Types.ObjectId(centerId) : null
         });
     } catch (error) {
         throw error;
