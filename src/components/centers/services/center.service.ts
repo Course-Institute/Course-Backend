@@ -121,10 +121,14 @@ const getCenterProfile = async (centerId: string, baseUrl?: string): Promise<Cen
             return baseUrl ? `${baseUrl}${formattedUrl}` : formattedUrl;
         };
 
+        // Remove bank details from the response for security/privacy
+        // while still formatting photo/document URLs for other sections.
+        const { bankDetails: _bankDetails, ...centerWithoutBank } = center as any;
+
         // Format all photo URLs in the center object
         const centerDetailsWithPhoto = center.centerDetails as any;
         const formattedCenter: any = {
-            ...center,
+            ...centerWithoutBank,
             centerDetails: {
                 ...center.centerDetails,
                 ...(centerDetailsWithPhoto.photo && { photo: formatUrl(centerDetailsWithPhoto.photo) })
@@ -136,10 +140,6 @@ const getCenterProfile = async (centerId: string, baseUrl?: string): Promise<Cen
             infrastructureDetails: {
                 ...center.infrastructureDetails,
                 infraPhotos: center.infrastructureDetails.infraPhotos?.map(photo => formatUrl(photo) || photo)
-            },
-            bankDetails: {
-                ...center.bankDetails,
-                cancelledCheque: formatUrl(center.bankDetails.cancelledCheque)
             },
             documentUploads: {
                 ...center.documentUploads,

@@ -62,21 +62,21 @@ const validateCenterData = (data: CreateCenterRequest): void => {
     }
 
     // Validate bank details
-    if (!bankDetails.bankName?.trim()) {
-        throw new Error('Bank name is required');
-    }
-    if (!bankDetails.accountHolder?.trim()) {
-        throw new Error('Account holder name is required');
-    }
-    if (!bankDetails.accountNumber?.trim()) {
-        throw new Error('Account number is required');
-    }
-    if (!bankDetails.ifsc?.trim() || !isValidIFSC(bankDetails.ifsc)) {
-        throw new Error('Valid IFSC code is required');
-    }
-    if (!bankDetails.branchName?.trim()) {
-        throw new Error('Branch name is required');
-    }
+    // if (!bankDetails.bankName?.trim()) {
+    //     throw new Error('Bank name is required');
+    // }
+    // if (!bankDetails.accountHolder?.trim()) {
+    //     throw new Error('Account holder name is required');
+    // }
+    // if (!bankDetails.accountNumber?.trim()) {
+    //     throw new Error('Account number is required');
+    // }
+    // if (!bankDetails.ifsc?.trim() || !isValidIFSC(bankDetails.ifsc)) {
+    //     throw new Error('Valid IFSC code is required');
+    // }
+    // if (!bankDetails.branchName?.trim()) {
+    //     throw new Error('Branch name is required');
+    // }
     // Validate declaration
     if (!declaration.declaration) {
         throw new Error('Declaration must be accepted');

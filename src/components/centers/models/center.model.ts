@@ -168,11 +168,11 @@ const infrastructureDetailsSchema = new Schema<InfrastructureDetails>(
 
 const bankDetailsSchema = new Schema<BankDetails>(
   {
-    bankName: { type: String, required: true },
-    accountHolder: { type: String, required: true },
-    accountNumber: { type: String, required: true },
-    ifsc: { type: String, required: true },
-    branchName: { type: String, required: true },
+    bankName: { type: String, required: false },
+    accountHolder: { type: String, required: false },
+    accountNumber: { type: String, required: false },
+    ifsc: { type: String, required: false },
+    branchName: { type: String, required: false },
     cancelledCheque: { type: String, required: false },
   },
   { _id: false }
@@ -216,7 +216,7 @@ const centerSchema = new Schema<ICenter>(
       type: infrastructureDetailsSchema,
       required: true,
     },
-    bankDetails: { type: bankDetailsSchema, required: true },
+    bankDetails: { type: bankDetailsSchema, required: false },
     documentUploads: { type: documentUploadsSchema, required: true },
     declaration: { type: centerDeclarationSchema, required: true },
     loginCredentials: { type: loginCredentialsSchema, required: true },

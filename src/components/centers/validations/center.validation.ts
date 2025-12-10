@@ -195,56 +195,56 @@ export const centerRegistrationSchema = Joi.object({
         }),
     
     // Bank Details
-    bankName: Joi.string()
-        .min(2)
-        .max(100)
-        .required()
-        .messages({
-            'string.empty': 'Bank name is required',
-            'string.min': 'Bank name must be at least 2 characters long',
-            'string.max': 'Bank name must not exceed 100 characters',
-            'any.required': 'Bank name is required'
-        }),
+    // bankName: Joi.string()
+    //     .min(2)
+    //     .max(100)
+    //     .required()
+    //     .messages({
+    //         'string.empty': 'Bank name is required',
+    //         'string.min': 'Bank name must be at least 2 characters long',
+    //         'string.max': 'Bank name must not exceed 100 characters',
+    //         'any.required': 'Bank name is required'
+    //     }),
     
-    accountHolder: Joi.string()
-        .min(2)
-        .max(100)
-        .required()
-        .messages({
-            'string.empty': 'Account holder name is required',
-            'string.min': 'Account holder name must be at least 2 characters long',
-            'string.max': 'Account holder name must not exceed 100 characters',
-            'any.required': 'Account holder name is required'
-        }),
+    // accountHolder: Joi.string()
+    //     .min(2)
+    //     .max(100)
+    //     .required()
+    //     .messages({
+    //         'string.empty': 'Account holder name is required',
+    //         'string.min': 'Account holder name must be at least 2 characters long',
+    //         'string.max': 'Account holder name must not exceed 100 characters',
+    //         'any.required': 'Account holder name is required'
+    //     }),
     
-    accountNumber: Joi.string()
-        .pattern(/^[0-9]{9,18}$/)
-        .required()
-        .messages({
-            'string.empty': 'Account number is required',
-            'string.pattern.base': 'Account number must be between 9 and 18 digits',
-            'any.required': 'Account number is required'
-        }),
+    // accountNumber: Joi.string()
+    //     .pattern(/^[0-9]{9,18}$/)
+    //     .required()
+    //     .messages({
+    //         'string.empty': 'Account number is required',
+    //         'string.pattern.base': 'Account number must be between 9 and 18 digits',
+    //         'any.required': 'Account number is required'
+    //     }),
     
-    ifsc: Joi.string()
-        .pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)
-        .required()
-        .messages({
-            'string.empty': 'IFSC code is required',
-            'string.pattern.base': 'IFSC code must be in valid format (e.g., SBIN0001234)',
-            'any.required': 'IFSC code is required'
-        }),
+    // ifsc: Joi.string()
+    //     .pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)
+    //     .required()
+    //     .messages({
+    //         'string.empty': 'IFSC code is required',
+    //         'string.pattern.base': 'IFSC code must be in valid format (e.g., SBIN0001234)',
+    //         'any.required': 'IFSC code is required'
+    //     }),
     
-    branchName: Joi.string()
-        .min(2)
-        .max(100)
-        .required()
-        .messages({
-            'string.empty': 'Branch name is required',
-            'string.min': 'Branch name must be at least 2 characters long',
-            'string.max': 'Branch name must not exceed 100 characters',
-            'any.required': 'Branch name is required'
-        }),
+    // branchName: Joi.string()
+    //     .min(2)
+    //     .max(100)
+    //     .required()
+    //     .messages({
+    //         'string.empty': 'Branch name is required',
+    //         'string.min': 'Branch name must be at least 2 characters long',
+    //         'string.max': 'Branch name must not exceed 100 characters',
+    //         'any.required': 'Branch name is required'
+    //     }),
     
     // Login Credentials
     username: Joi.string()
