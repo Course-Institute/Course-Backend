@@ -207,9 +207,8 @@ const findStudentByRegistrationNo = async (registrationNo: string): Promise<any>
 
 const getStudentProfileByRegistrationNo = async (registrationNo: string): Promise<any> => {
     try {
-        
         // Check for the specific student
-        const student = await StudentModel.findOne({ registrationNo: registrationNo }).lean();
+        const student = await StudentModel.findOne({ registrationNo: registrationNo }).populate('course').lean();
         return student;
     } catch (error) {
         console.log('Error in getStudentProfileByRegistrationNo:', error);

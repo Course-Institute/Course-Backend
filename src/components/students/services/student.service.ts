@@ -176,7 +176,7 @@ const addStudent = async ({
 const getStudentProfile = async (registrationNo: string) => {
     try {
         const student = await studentDal.getStudentProfileByRegistrationNo(registrationNo);
-        
+        student.course = student.course.name;
         if (!student) {
             throw new Error('Student not found with the provided registration number');
         }
