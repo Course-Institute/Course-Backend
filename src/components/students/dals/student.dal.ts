@@ -513,7 +513,9 @@ const getAllStudents = async ({
                     centerId: 1,
                     isMarksheetGenerated: 1,
                     whichSemesterMarksheetIsGenerated: 1,
+                    whichYearMarksheetIsGenerated: 1,
                     approvedSemesters: 1,
+                    approvedYears: 1,
                     faculty: 1
                 }
             },
@@ -557,11 +559,13 @@ const getStudentByRegistrationNo = async (registrationNo: string) => {
 const approveStudentMarksheetDal = async ({
     registrationNo,
     studentId,
-    semester
+    semester,
+    year
 }:{
     registrationNo?: string
     studentId?: string
     semester?: string
+    year?: string
 }) => {
     try {
         if(studentId) {
@@ -579,28 +583,36 @@ const approveStudentMarksheetDal = async ({
             };
         }
 
-        // If semester is provided, update approvedSemesters array
-        if (semester) {
-            // Initialize approvedSemesters array if it doesn't exist
-            if (!student.approvedSemesters) {
-                student.approvedSemesters = [];
+        // If term is provided, update approved arrays
+        if (semester || year) {
+            if (semester) {
+                if (!student.approvedSemesters) {
+                    student.approvedSemesters = [];
+                }
+                if (!student.approvedSemesters.includes(semester)) {
+                    student.approvedSemesters.push(semester);
+                    student.approvedSemesters.sort();
+                }
             }
 
-            // Add semester to approved array if not already present
-            if (!student.approvedSemesters.includes(semester)) {
-                student.approvedSemesters.push(semester);
-                // Sort array to keep it organized
-                student.approvedSemesters.sort();
+            if (year) {
+                if (!student.approvedYears) {
+                    student.approvedYears = [];
+                }
+                if (!student.approvedYears.includes(year)) {
+                    student.approvedYears.push(year);
+                    student.approvedYears.sort();
+                }
             }
 
-            // Set isMarksheetAndCertificateApproved to true if at least one semester is approved
-            if (student.approvedSemesters.length > 0) {
+            // Set isMarksheetAndCertificateApproved to true if at least one term is approved
+            if ((student.approvedSemesters && student.approvedSemesters.length > 0) || (student.approvedYears && student.approvedYears.length > 0)) {
                 student.isMarksheetAndCertificateApproved = true;
             }
 
             await student.save();
         } else {
-            // Backward compatibility: if no semester provided, set isMarksheetAndCertificateApproved to true
+            // Backward compatibility: if no term provided, set isMarksheetAndCertificateApproved to true
             const updatedStudent = await StudentModel.findOneAndUpdate(
                 { registrationNo: registrationNo },
                 { $set: { isMarksheetAndCertificateApproved: true } },
@@ -613,9 +625,10 @@ const approveStudentMarksheetDal = async ({
             };
         }
 
+        const termLabel = semester ? `Semester ${semester}` : year ? `Year ${year}` : 'Student';
         return {
             status: true,
-            message: semester ? `Semester ${semester} marksheet approved successfully` : "Student Approved successfully",
+            message: `${termLabel} marksheet approved successfully`,
             data: student as IStudent
         };
     } catch (error) {
@@ -652,7 +665,7 @@ const updateMarksheetGenerationStatusDal = async ({studentId, isMarksheetGenerat
     }
 }
 
-const updateStudentSemesterMarksheetArrayDal = async ({studentId, semester}: {studentId: string, semester: string}) => {
+const updateStudentSemesterMarksheetArrayDal = async ({studentId, semester, year}: {studentId: string, semester?: string, year?: string}) => {
     try {
         // Find the student
         const student = await StudentModel.findById(studentId);
@@ -661,16 +674,33 @@ const updateStudentSemesterMarksheetArrayDal = async ({studentId, semester}: {st
             throw new Error('Student not found');
         }
 
+        const term = semester || year;
+        if (!term) {
+            return student;
+        }
+
         // Initialize array if it doesn't exist
         if (!student.whichSemesterMarksheetIsGenerated) {
             student.whichSemesterMarksheetIsGenerated = [];
         }
+        if (!student.whichYearMarksheetIsGenerated) {
+            student.whichYearMarksheetIsGenerated = [];
+        }
 
         // Add semester to array if not already present
-        if (!student.whichSemesterMarksheetIsGenerated.includes(semester)) {
-            student.whichSemesterMarksheetIsGenerated.push(semester);
-            // Sort array to keep it organized
-            student.whichSemesterMarksheetIsGenerated.sort();
+        if (semester) {
+            if (!student.whichSemesterMarksheetIsGenerated.includes(semester)) {
+                student.whichSemesterMarksheetIsGenerated.push(semester);
+                student.whichSemesterMarksheetIsGenerated.sort();
+            }
+        }
+
+        // Add year to array if not already present
+        if (year) {
+            if (!student.whichYearMarksheetIsGenerated.includes(year)) {
+                student.whichYearMarksheetIsGenerated.push(year);
+                student.whichYearMarksheetIsGenerated.sort();
+            }
         }
 
         // Also set isMarksheetGenerated to true for backward compatibility

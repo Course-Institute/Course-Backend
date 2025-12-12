@@ -311,7 +311,7 @@ const getAllCentersController = async (req: Request, res: Response): Promise<Res
 
 const approveStudentMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { registrationNo, subjects, marksheetId, semester } = req.body;
+        const { registrationNo, subjects, marksheetId, semester, year } = req.body;
 
         // Validate required fields
         if (!registrationNo) {
@@ -324,13 +324,13 @@ const approveStudentMarksheetController = async (req: Request, res: Response): P
             });
         }
 
-        // If semester is provided, marksheetId is required
-        if (semester && !marksheetId) {
+        // If term is provided, marksheetId is required
+        if ((semester || year) && !marksheetId) {
             return sendResponse({
                 res,
                 statusCode: 400,
                 status: false,
-                message: 'marksheetId is required when approving a specific semester',
+                message: 'marksheetId is required when approving a specific semester/year',
                 data: null
             });
         }
@@ -340,7 +340,8 @@ const approveStudentMarksheetController = async (req: Request, res: Response): P
             registrationNo,
             subjects,
             marksheetId,
-            semester
+            semester,
+            year
         });
 
         if (!result.status) {

@@ -1,9 +1,20 @@
 import { IMarksheet, MarksheetModel, SubjectMarks } from '../models/marksheet.model.js';
 import mongoose from 'mongoose';
 
-const uploadMarksheetDal = async ({ studentId, semester, courseId, serialNo, subjects, role }: { studentId: string, semester: string, courseId: string, serialNo?: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
+const buildTermFilter = (studentId: string, semester?: string, year?: string) => {
+    const filter: any = { studentId };
+    if (semester) {
+        filter.semester = semester;
+    }
+    if (year) {
+        filter.year = year;
+    }
+    return filter;
+};
+
+const uploadMarksheetDal = async ({ studentId, semester, year, courseId, serialNo, subjects, role }: { studentId: string, semester?: string, year?: string, courseId: string, serialNo?: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
     try {
-        const result = await MarksheetModel.create({ studentId, semester, courseId, serialNo, subjects, role });
+        const result = await MarksheetModel.create({ studentId, semester, year, courseId, serialNo, subjects, role });
         return result;
     } catch (error: any) {
         console.log('Error in uploadMarksheetDal:', error);
@@ -76,7 +87,7 @@ const getAllMarksheetsDal = async ({
 const getMarksheetByStudentIdDal = async (studentId: string): Promise<any> => {
     try {
         const marksheet = await MarksheetModel.findOne({ studentId })
-            .populate('studentId', 'registrationNo candidateName course faculty session centerId isMarksheetAndCertificateApproved')
+            .populate('studentId', 'registrationNo candidateName course faculty session centerId isMarksheetAndCertificateApproved whichSemesterMarksheetIsGenerated whichYearMarksheetIsGenerated approvedSemesters approvedYears')
             .populate('courseId', 'name code duration description')
             .lean();
         
@@ -108,7 +119,7 @@ const showMarksheetWithFullStudentDataDal = async (studentId: string): Promise<a
     }
 };
 
-const updateMarksheetDal = async ({ marksheetId, serialNo, subjects, role }: { marksheetId: string, serialNo?: string, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
+const updateMarksheetDal = async ({ marksheetId, serialNo, semester, year, subjects, role }: { marksheetId: string, serialNo?: string, semester?: string | null, year?: string | null, subjects: SubjectMarks[], role?: string }): Promise<IMarksheet> => {
     try {
         const updateData: any = { subjects: subjects };
         if (role) {
@@ -117,6 +128,19 @@ const updateMarksheetDal = async ({ marksheetId, serialNo, subjects, role }: { m
         // Update serialNo only if provided (preserve existing if not provided)
         if (serialNo !== undefined) {
             updateData.serialNo = serialNo || null;
+        }
+        // Update term fields if provided to maintain mutual exclusivity
+        if (semester !== undefined) {
+            updateData.semester = semester;
+            if (semester !== null) {
+                updateData.year = null;
+            }
+        }
+        if (year !== undefined) {
+            updateData.year = year;
+            if (year !== null) {
+                updateData.semester = null;
+            }
         }
         
         const result = await MarksheetModel.findByIdAndUpdate(
@@ -140,9 +164,9 @@ const updateMarksheetDal = async ({ marksheetId, serialNo, subjects, role }: { m
     }
 };
 
-const getMarksheetByStudentIdAndSemesterDal = async (studentId: string, semester: string): Promise<any> => {
+const getMarksheetByStudentIdAndSemesterDal = async (studentId: string, semester?: string, year?: string): Promise<any> => {
     try {
-        const marksheet = await MarksheetModel.findOne({ studentId, semester })
+        const marksheet = await MarksheetModel.findOne(buildTermFilter(studentId, semester, year))
             .populate({
                 path: 'studentId',
                 select: 'registrationNo candidateName motherName fatherName gender dateOfBirth courseType faculty course stream year monthSession session duration photo signature isMarksheetAndCertificateApproved',
@@ -160,9 +184,9 @@ const getMarksheetByStudentIdAndSemesterDal = async (studentId: string, semester
     }
 };
 
-const findMarksheetByStudentIdAndSemesterDal = async (studentId: string, semester: string): Promise<IMarksheet | null> => {
+const findMarksheetByStudentIdAndSemesterDal = async (studentId: string, semester?: string, year?: string): Promise<IMarksheet | null> => {
     try {
-        const marksheet = await MarksheetModel.findOne({ studentId, semester });
+        const marksheet = await MarksheetModel.findOne(buildTermFilter(studentId, semester, year));
         return marksheet;
     } catch (error) {
         console.log('Error in findMarksheetByStudentIdAndSemesterDal:', error);

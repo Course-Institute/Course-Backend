@@ -63,6 +63,10 @@ const listAllStudents = async ({
             courseType: student.course?.coursesType || student.courseType,
             course: student.course?.name || student.course, // backward compatibility for existing consumers
             studentId: student._id?.toString(),
+            whichSemesterMarksheetIsGenerated: student.whichSemesterMarksheetIsGenerated || [],
+            whichYearMarksheetIsGenerated: student.whichYearMarksheetIsGenerated || [],
+            approvedSemesters: student.approvedSemesters || [],
+            approvedYears: student.approvedYears || [],
         }));
 
         return {
@@ -193,12 +197,14 @@ const approveStudentMarksheetService = async ({
     registrationNo,
     subjects,
     marksheetId,
-    semester
+    semester,
+    year
 }: {
     registrationNo: string;
     subjects?: SubjectMarks[];
     marksheetId?: string;
     semester?: string;
+    year?: string;
 }): Promise<{
     status: boolean,
     message: string,
@@ -206,8 +212,8 @@ const approveStudentMarksheetService = async ({
 }> => {
     try {
         // Validate required fields when semester is provided
-        if (semester && !marksheetId) {
-            throw new Error('marksheetId is required when approving a specific semester');
+        if ((semester || year) && !marksheetId) {
+            throw new Error('marksheetId is required when approving a specific semester/year');
         }
 
         // Get student by registration number
@@ -236,9 +242,12 @@ const approveStudentMarksheetService = async ({
                 throw new Error('Marksheet does not belong to this student');
             }
 
-            // If semester is provided, validate it matches the marksheet
+            // If term is provided, validate it matches the marksheet
             if (semester && marksheet.semester !== semester) {
                 throw new Error('Marksheet does not belong to this semester');
+            }
+            if (year && (marksheet as any).year !== year) {
+                throw new Error('Marksheet does not belong to this year');
             }
 
             // Update marksheet subjects if provided
@@ -247,24 +256,27 @@ const approveStudentMarksheetService = async ({
                     marksheetId,
                     subjects,
                     studentId: student._id.toString(),
-                    semester: semester || marksheet.semester
+                    semester: semester || marksheet.semester,
+                    year: year || (marksheet as any).year
                 });
             }
         }
 
-        // Update student approval status with semester
+        // Update student approval status with term
         const updatedStudent = await studentDal.approveStudentMarksheetDal({ 
             registrationNo,
-            semester 
+            semester,
+            year
         });
         
         if (!updatedStudent?.data) {
             throw new Error('Failed to update student approval status');
         }
         
+        const termLabel = semester ? `Semester ${semester}` : year ? `Year ${year}` : "Marksheet";
         return {
             status: true,
-            message: semester ? `Semester ${semester} marksheet approved successfully` : "Marksheet approved successfully",
+            message: `${termLabel} approved successfully`,
             data: updatedStudent.data
         };
     } catch (error: any) {

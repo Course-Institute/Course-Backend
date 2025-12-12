@@ -241,7 +241,7 @@ const getSubjectsByCourseAndSemesterController = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { courseId, semester } = req.query;
+    const { courseId, semester, year } = req.query;
 
     // Validate required parameters
     if (!courseId) {
@@ -249,30 +249,46 @@ const getSubjectsByCourseAndSemesterController = async (
         res,
         statusCode: 400,
         status: false,
-        message: 'Course ID and Semester are required',
+        message: 'Course ID is required',
         data: [],
       });
     }
 
-    if (!semester) {
+    const hasSemester = semester !== undefined && semester !== null && semester !== '';
+    const hasYear = year !== undefined && year !== null && year !== '';
+
+    if (hasSemester && hasYear) {
       return sendResponse({
         res,
         statusCode: 400,
         status: false,
-        message: 'Course ID and Semester are required',
+        message: 'Provide either semester or year, not both',
+        data: [],
+      });
+    }
+
+    if (!hasSemester && !hasYear) {
+      return sendResponse({
+        res,
+        statusCode: 400,
+        status: false,
+        message: 'Either semester or year is required',
         data: [],
       });
     }
 
     const subjects = await courseService.getSubjectsByCourseAndSemesterService(
       courseId as string,
-      Number(semester)
+      hasSemester ? Number(semester) : undefined,
+      hasYear ? Number(year) : undefined
     );
 
     // Format response according to specification
-    const formattedSubjects = subjects.map((subject) => ({
+    const formattedSubjects = subjects.map((subject: any) => ({
       _id: String(subject._id),
       name: subject.name,
+      semester: subject.semester || null,
+      year: subject.year || null,
     }));
 
     // If no subjects found, return empty array with appropriate message
@@ -281,7 +297,7 @@ const getSubjectsByCourseAndSemesterController = async (
         res,
         statusCode: 200,
         status: true,
-        message: 'No subjects found for the given course and semester',
+        message: 'No subjects found for the given course and term',
         data: [],
       });
     }
@@ -315,6 +331,16 @@ const getSubjectsByCourseAndSemesterController = async (
       });
     }
 
+    if (error.message.includes('Provide either semester or year')) {
+      return sendResponse({
+        res,
+        statusCode: 400,
+        status: false,
+        message: error.message,
+        data: [],
+      });
+    }
+
     return sendResponse({
       res,
       statusCode: 400,
@@ -330,11 +356,12 @@ const getAllSubjectsController = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { courseId, semester } = req.query;
+    const { courseId, semester, year } = req.query;
 
-    const filters: { courseId?: string; semester?: number } = {};
+    const filters: { courseId?: string; semester?: number; year?: number } = {};
     if (courseId) filters.courseId = courseId as string;
     if (semester) filters.semester = Number(semester);
+    if (year) filters.year = Number(year);
 
     const subjects = await courseService.getAllSubjectsService(filters);
 
@@ -344,7 +371,8 @@ const getAllSubjectsController = async (
       name: subject.name,
       courseId: String(subject.courseId?._id || subject.courseId),
       courseName: subject.courseId?.name || undefined,
-      semester: subject.semester,
+      semester: subject.semester || null,
+      year: subject.year || null,
       code: subject.code || undefined,
       credits: subject.credits || undefined,
       createdAt: subject.createdAt ? new Date(subject.createdAt).toISOString() : undefined,
@@ -374,12 +402,13 @@ const createSubjectController = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { name, courseId, semester, code, credits } = req.body;
+    const { name, courseId, semester, year, code, credits } = req.body;
 
     const subject = await courseService.createSubjectService({
       name,
       courseId,
-      semester,
+      semester: semester !== undefined && semester !== '' ? Number(semester) : null,
+      year: year !== undefined && year !== '' ? Number(year) : null,
       code,
       credits,
     });
@@ -389,7 +418,8 @@ const createSubjectController = async (
       _id: String(subject._id),
       name: subject.name,
       courseId: String(subject.courseId),
-      semester: subject.semester,
+      semester: (subject as any).semester || null,
+      year: (subject as any).year || null,
       code: subject.code || undefined,
       credits: subject.credits || undefined,
       createdAt: subject.createdAt ? new Date(subject.createdAt).toISOString() : new Date().toISOString(),
@@ -413,6 +443,15 @@ const createSubjectController = async (
       });
     }
 
+    if (error.message.includes('Provide either semester or year') || error.message.includes('Either semester or year is required')) {
+      return sendResponse({
+        res,
+        statusCode: 400,
+        status: false,
+        message: error.message,
+      });
+    }
+
     return sendResponse({
       res,
       statusCode: 400,
@@ -428,7 +467,7 @@ const updateSubjectController = async (
 ): Promise<Response> => {
   try {
     const { subjectId } = req.params;
-    const { name, courseId, semester, code, credits } = req.body;
+    const { name, courseId, semester, year, code, credits } = req.body;
 
     if (!subjectId) {
       return sendResponse({
@@ -442,7 +481,8 @@ const updateSubjectController = async (
     const subject = await courseService.updateSubjectService(subjectId, {
       name,
       courseId,
-      semester,
+      semester: semester !== undefined && semester !== '' ? Number(semester) : null,
+      year: year !== undefined && year !== '' ? Number(year) : null,
       code,
       credits,
     });
@@ -461,7 +501,8 @@ const updateSubjectController = async (
       _id: String(subject._id),
       name: subject.name,
       courseId: String(subject.courseId),
-      semester: subject.semester,
+      semester: (subject as any).semester || null,
+      year: (subject as any).year || null,
       code: subject.code || undefined,
       credits: subject.credits || undefined,
       createdAt: subject.createdAt ? new Date(subject.createdAt).toISOString() : undefined,
@@ -480,6 +521,15 @@ const updateSubjectController = async (
       return sendResponse({
         res,
         statusCode: 404,
+        status: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message.includes('Provide either semester or year')) {
+      return sendResponse({
+        res,
+        statusCode: 400,
         status: false,
         message: error.message,
       });

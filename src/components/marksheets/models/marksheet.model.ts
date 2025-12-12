@@ -14,6 +14,7 @@ export interface SubjectMarks {
 interface IMarksheet extends Document {
   studentId?: mongoose.Types.ObjectId;
   semester?: string;
+  year?: string | number;
   courseId?: mongoose.Types.ObjectId;
   serialNo?: string;
   subjects?: SubjectMarks[];
@@ -45,7 +46,9 @@ const subjectMarksSchema = new Schema<SubjectMarks>(
 const marksheetSchema = new Schema<IMarksheet>(
   {
     studentId: { type: Schema.Types.ObjectId, ref: 'students', required: true },
-    semester: { type: String, required: true },
+    // Either semester or year will be provided (mutually exclusive at the API layer)
+    semester: { type: String, required: false },
+    year: { type: String, required: false },
     courseId: { type: Schema.Types.ObjectId, ref: 'courses', required: true },
     serialNo: { type: String, required: false },
     subjects: [subjectMarksSchema],
@@ -56,12 +59,28 @@ const marksheetSchema = new Schema<IMarksheet>(
   }
 );
 
-// Create compound unique index on (studentId, semester) to prevent duplicates
-marksheetSchema.index({ studentId: 1, semester: 1 }, { unique: true });
+// Create compound unique indexes that respect mutually exclusive term fields
+marksheetSchema.index(
+  { studentId: 1, courseId: 1, semester: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      semester: { $exists: true, $ne: null }
+    }
+  }
+);
+marksheetSchema.index(
+  { studentId: 1, courseId: 1, year: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { year: { $exists: true, $ne: null } }
+  }
+);
 
 // Create individual indexes for faster lookups
 marksheetSchema.index({ studentId: 1 });
 marksheetSchema.index({ semester: 1 });
+marksheetSchema.index({ year: 1 });
 marksheetSchema.index({ courseId: 1 });
 // Create unique sparse index on serialNo to ensure uniqueness when provided
 marksheetSchema.index({ serialNo: 1 }, { unique: true, sparse: true });

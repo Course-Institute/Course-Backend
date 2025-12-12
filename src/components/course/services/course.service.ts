@@ -92,7 +92,8 @@ const deleteCourseService = async (courseId: string): Promise<boolean> => {
 
 const getSubjectsByCourseAndSemesterService = async (
   courseId: string,
-  semester: number
+  semester?: number,
+  year?: number
 ): Promise<ISubject[]> => {
   try {
     // Validate inputs
@@ -100,19 +101,38 @@ const getSubjectsByCourseAndSemesterService = async (
       throw new Error('Course ID is required');
     }
 
-    if (semester === undefined || semester === null) {
-      throw new Error('Semester is required');
+    const hasSemester = semester !== undefined && semester !== null;
+    const hasYear = year !== undefined && year !== null;
+
+    if (hasSemester && hasYear) {
+      throw new Error('Provide either semester or year, not both');
     }
 
-    // Validate semester is a valid number
-    const semesterNum = Number(semester);
-    if (isNaN(semesterNum) || semesterNum < 1) {
-      throw new Error('Semester must be a valid positive number');
+    if (!hasSemester && !hasYear) {
+      throw new Error('Semester or year is required');
+    }
+
+    let normalizedSemester: number | undefined = undefined;
+    let normalizedYear: number | undefined = undefined;
+
+    if (hasSemester) {
+      const semesterNum = Number(semester);
+      if (isNaN(semesterNum) || semesterNum < 1 || semesterNum > 8) {
+        throw new Error('Semester must be a valid number between 1 and 8');
+      }
+      normalizedSemester = semesterNum;
+    } else if (hasYear) {
+      const yearNum = Number(year);
+      if (isNaN(yearNum) || yearNum < 1 || yearNum > 4) {
+        throw new Error('Year must be a valid number between 1 and 4');
+      }
+      normalizedYear = yearNum;
     }
 
     const subjects = await courseDal.getSubjectsByCourseAndSemesterDal(
       courseId,
-      semesterNum
+      normalizedSemester,
+      normalizedYear
     );
     return subjects;
   } catch (error) {
@@ -124,6 +144,7 @@ const getSubjectsByCourseAndSemesterService = async (
 const getAllSubjectsService = async (filters?: {
   courseId?: string;
   semester?: number;
+  year?: number;
 }): Promise<ISubject[]> => {
   try {
     const subjects = await courseDal.getAllSubjectsDal(filters);
@@ -150,11 +171,40 @@ const getSubjectByIdService = async (subjectId: string): Promise<ISubject | null
 const createSubjectService = async (subjectData: {
   name: string;
   courseId: string;
-  semester: number;
+  semester?: number | null;
+  year?: number | null;
   code?: string;
   credits?: number;
 }): Promise<ISubject> => {
   try {
+    // Validate mutual exclusivity
+    const hasSemester = subjectData.semester !== undefined && subjectData.semester !== null;
+    const hasYear = subjectData.year !== undefined && subjectData.year !== null;
+
+    if (hasSemester && hasYear) {
+      throw new Error('Provide either semester or year, not both');
+    }
+
+    if (!hasSemester && !hasYear) {
+      throw new Error('Either semester or year is required');
+    }
+
+    // Validate semester range if provided
+    if (hasSemester) {
+      const semesterNum = Number(subjectData.semester);
+      if (isNaN(semesterNum) || semesterNum < 1 || semesterNum > 8) {
+        throw new Error('Semester must be between 1 and 8');
+      }
+    }
+
+    // Validate year range if provided
+    if (hasYear) {
+      const yearNum = Number(subjectData.year);
+      if (isNaN(yearNum) || yearNum < 1 || yearNum > 4) {
+        throw new Error('Year must be between 1 and 4');
+      }
+    }
+
     // Validate course exists
     const course = await courseDal.getCourseByIdDal(subjectData.courseId);
     if (!course) {
@@ -174,7 +224,8 @@ const updateSubjectService = async (
   updateData: {
     name?: string;
     courseId?: string;
-    semester?: number;
+    semester?: number | null;
+    year?: number | null;
     code?: string;
     credits?: number;
   }
@@ -188,6 +239,30 @@ const updateSubjectService = async (
     const existingSubject = await courseDal.getSubjectByIdDal(subjectId);
     if (!existingSubject) {
       throw new Error('Subject not found');
+    }
+
+    // Validate mutual exclusivity if term fields are being updated
+    const hasSemester = updateData.semester !== undefined && updateData.semester !== null;
+    const hasYear = updateData.year !== undefined && updateData.year !== null;
+
+    if (hasSemester && hasYear) {
+      throw new Error('Provide either semester or year, not both');
+    }
+
+    // Validate semester range if provided
+    if (hasSemester) {
+      const semesterNum = Number(updateData.semester);
+      if (isNaN(semesterNum) || semesterNum < 1 || semesterNum > 8) {
+        throw new Error('Semester must be between 1 and 8');
+      }
+    }
+
+    // Validate year range if provided
+    if (hasYear) {
+      const yearNum = Number(updateData.year);
+      if (isNaN(yearNum) || yearNum < 1 || yearNum > 4) {
+        throw new Error('Year must be between 1 and 4');
+      }
     }
 
     // If courseId is being updated, validate it exists

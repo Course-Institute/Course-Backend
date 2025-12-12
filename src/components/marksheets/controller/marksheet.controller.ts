@@ -32,7 +32,7 @@ const getAllMarksheetsController = async (req: Request, res: Response): Promise<
 
 const uploadMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { studentId, semester, courseId, serialNo, subjects, marksheetId, role } = req.body;
+        const { studentId, semester, year, courseId, serialNo, subjects, marksheetId, role } = req.body;
 
         if (!studentId) {
             return sendResponse({
@@ -44,12 +44,25 @@ const uploadMarksheetController = async (req: Request, res: Response): Promise<R
             });
         }
 
-        if (!semester) {
+        const hasSemester = semester !== undefined && semester !== null && semester !== '';
+        const hasYear = year !== undefined && year !== null && year !== '';
+
+        if (!hasSemester && !hasYear) {
             return sendResponse({
                 res,
                 statusCode: 400,
                 status: false,
-                message: 'Semester is required',
+                message: 'Semester or year is required',
+                data: null
+            });
+        }
+
+        if (hasSemester && hasYear) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Provide either semester or year, not both',
                 data: null
             });
         }
@@ -76,12 +89,17 @@ const uploadMarksheetController = async (req: Request, res: Response): Promise<R
         }
 
         // Check if marksheet already exists for this student + semester
-        const existingMarksheet = await marksheetService.getMarksheetByStudentIdAndSemesterService(studentId, semester);
+        const existingMarksheet = await marksheetService.getMarksheetByStudentIdAndSemesterService(
+            studentId,
+            hasSemester ? semester : undefined,
+            hasYear ? year : undefined
+        );
         const isUpdate = existingMarksheet || marksheetId;
 
         const marksheet = await marksheetService.uploadOrUpdateMarksheet({
             studentId,
             semester,
+            year,
             courseId,
             serialNo,
             subjects: subjects as SubjectMarks[],
@@ -148,6 +166,12 @@ const getMarksheetController = async (req: Request, res: Response): Promise<Resp
             studentId: marksheet.studentId?._id?.toString() || marksheet.studentId?.toString() || '',
             registrationNo: marksheet.studentId?.registrationNo || '',
             serialNo: marksheet.serialNo || null,
+            semester: marksheet.semester || null,
+            year: (marksheet as any).year || null,
+            whichSemesterMarksheetIsGenerated: marksheet.studentId?.whichSemesterMarksheetIsGenerated || [],
+            whichYearMarksheetIsGenerated: marksheet.studentId?.whichYearMarksheetIsGenerated || [],
+            approvedSemesters: marksheet.studentId?.approvedSemesters || [],
+            approvedYears: marksheet.studentId?.approvedYears || [],
             subjects: marksheet.subjects?.map((subject: any, index: number) => ({
                 id: subject.id || index.toString(),
                 subjectName: subject.subjectName || '',
@@ -185,6 +209,7 @@ const showMarksheetController = async (req: Request, res: Response): Promise<Res
         // Support both query parameters and request body
         const studentId = (req.query.studentId || req.body.studentId) as string;
         const semester = (req.query.semester || req.body.semester) as string;
+        const year = (req.query.year || req.body.year) as string;
 
         if (!studentId) {
             return sendResponse({
@@ -195,24 +220,41 @@ const showMarksheetController = async (req: Request, res: Response): Promise<Res
             });
         }
 
-        if (!semester) {
+        const hasSemester = semester !== undefined && semester !== null && semester !== '';
+        const hasYear = year !== undefined && year !== null && year !== '';
+
+        if (!hasSemester && !hasYear) {
             return sendResponse({
                 res,
                 statusCode: 400,
                 status: false,
-                message: 'Semester is required',
+                message: 'Semester or year is required',
                 data: null
             });
         }
 
-        const marksheet = await marksheetService.getMarksheetByStudentIdAndSemesterService(studentId, semester);
+        if (hasSemester && hasYear) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Provide either semester or year, not both',
+                data: null
+            });
+        }
+
+        const marksheet = await marksheetService.getMarksheetByStudentIdAndSemesterService(
+            studentId,
+            hasSemester ? semester : undefined,
+            hasYear ? year : undefined
+        );
 
         if (!marksheet) {
             return sendResponse({
                 res,
                 statusCode: 200,
                 status: false,
-                message: 'No marksheet found for this student and semester',
+                message: 'No marksheet found for this student and semester/year',
                 data: null
             });
         }
@@ -237,7 +279,7 @@ const showMarksheetController = async (req: Request, res: Response): Promise<Res
 
 const updateMarksheetController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { marksheetId, studentId, semester, serialNo, subjects, role } = req.body;
+        const { marksheetId, studentId, semester, year, serialNo, subjects, role } = req.body;
 
         if (!marksheetId) {
             return sendResponse({
@@ -257,12 +299,25 @@ const updateMarksheetController = async (req: Request, res: Response): Promise<R
             });
         }
 
-        if (!semester) {
+        const hasSemester = semester !== undefined && semester !== null && semester !== '';
+        const hasYear = year !== undefined && year !== null && year !== '';
+
+        if (!hasSemester && !hasYear) {
             return sendResponse({
                 res,
                 statusCode: 400,
                 status: false,
-                message: 'Semester is required',
+                message: 'Semester or year is required',
+                data: null
+            });
+        }
+
+        if (hasSemester && hasYear) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Provide either semester or year, not both',
                 data: null
             });
         }
@@ -281,6 +336,7 @@ const updateMarksheetController = async (req: Request, res: Response): Promise<R
             marksheetId,
             studentId,
             semester,
+            year,
             serialNo,
             subjects: subjects as SubjectMarks[],
             role

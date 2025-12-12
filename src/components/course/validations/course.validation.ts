@@ -70,13 +70,25 @@ export const createSubjectSchema = Joi.object({
     .integer()
     .min(1)
     .max(8)
-    .required()
+    .allow(null, '')
+    .optional()
     .messages({
       'number.base': 'Semester must be a number',
       'number.integer': 'Semester must be an integer',
       'number.min': 'Semester must be at least 1',
       'number.max': 'Semester must be at most 8',
-      'any.required': 'Semester is required',
+    }),
+  year: Joi.number()
+    .integer()
+    .min(1)
+    .max(4)
+    .allow(null, '')
+    .optional()
+    .messages({
+      'number.base': 'Year must be a number',
+      'number.integer': 'Year must be an integer',
+      'number.min': 'Year must be at least 1',
+      'number.max': 'Year must be at most 4',
     }),
   code: Joi.string()
     .max(20)
@@ -93,7 +105,24 @@ export const createSubjectSchema = Joi.object({
       'number.base': 'Credits must be a number',
       'number.positive': 'Credits must be a positive number',
     }),
-});
+}).custom((value, helpers) => {
+  const hasSemester = value.semester !== undefined && value.semester !== null && value.semester !== '';
+  const hasYear = value.year !== undefined && value.year !== null && value.year !== '';
+
+  if (hasSemester && hasYear) {
+    return helpers.error('custom.mutualExclusivity', {
+      message: 'Provide either semester or year, not both',
+    });
+  }
+
+  if (!hasSemester && !hasYear) {
+    return helpers.error('custom.termRequired', {
+      message: 'Either semester or year is required',
+    });
+  }
+
+  return value;
+}, 'Mutual exclusivity validation');
 
 export const updateSubjectSchema = createSubjectSchema;
 
@@ -142,13 +171,34 @@ export const validateCreateSubject = (
   if (error) {
     const errors: Record<string, string> = {};
     error.details.forEach((detail) => {
-      const field = detail.path.join('.');
-      errors[field] = detail.message;
+      // Handle custom validation errors
+      if (detail.type === 'custom.mutualExclusivity' || detail.type === 'custom.termRequired') {
+        errors.semester = detail.message || 'Either semester or year is required';
+        errors.year = detail.message || 'Either semester or year is required';
+      } else {
+        const field = detail.path.join('.');
+        errors[field] = detail.message;
+      }
     });
+
+    // If mutual exclusivity error, set specific message
+    const hasMutualExclusivityError = error.details.some(
+      (d) => d.type === 'custom.mutualExclusivity'
+    );
+    const hasTermRequiredError = error.details.some(
+      (d) => d.type === 'custom.termRequired'
+    );
+
+    let message = 'Validation error';
+    if (hasMutualExclusivityError) {
+      message = 'Provide either semester or year, not both';
+    } else if (hasTermRequiredError) {
+      message = 'Either semester or year is required';
+    }
 
     res.status(400).json({
       status: false,
-      message: 'Validation error',
+      message,
       errors,
     });
     return;

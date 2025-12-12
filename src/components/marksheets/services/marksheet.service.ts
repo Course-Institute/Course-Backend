@@ -5,6 +5,31 @@ import studentDal from '../../students/dals/student.dal.js';
 import { CourseModel } from '../../course/models/course.model.js';
 import mongoose from 'mongoose';
 
+const normalizeTermInput = (semester?: string, year?: string | number) => {
+    const normalizedSemester = semester !== undefined && semester !== null && String(semester).trim() !== ''
+        ? String(semester).trim()
+        : undefined;
+    const normalizedYear = year !== undefined && year !== null && String(year).trim() !== ''
+        ? String(year).trim()
+        : undefined;
+
+    const hasSemester = Boolean(normalizedSemester);
+    const hasYear = Boolean(normalizedYear);
+
+    if (hasSemester && hasYear) {
+        throw new Error('Provide either semester or year, not both');
+    }
+
+    if (!hasSemester && !hasYear) {
+        throw new Error('Semester or year is required');
+    }
+
+    return {
+        semester: normalizedSemester,
+        year: normalizedYear
+    };
+};
+
 const getAllMarksheetsService = async ({
     query,
     limit,
@@ -82,6 +107,7 @@ const validateAndProcessSubjects = (subjects: SubjectMarks[]): SubjectMarks[] =>
 const uploadOrUpdateMarksheet = async ({ 
     studentId, 
     semester,
+    year,
     courseId,
     serialNo,
     subjects, 
@@ -90,6 +116,7 @@ const uploadOrUpdateMarksheet = async ({
 }: { 
     studentId: string, 
     semester?: string,
+    year?: string | number,
     courseId?: string,
     serialNo?: string,
     subjects: SubjectMarks[], 
@@ -102,10 +129,7 @@ const uploadOrUpdateMarksheet = async ({
             throw new Error('Student ID is required');
         }
 
-        // Semester is required only when creating a new marksheet (when marksheetId is not provided)
-        if (!marksheetId && !semester) {
-            throw new Error('Semester is required when creating a new marksheet');
-        }
+        const term = normalizeTermInput(semester, year);
 
         // CourseId is required when creating a new marksheet
         if (!marksheetId && !courseId) {
@@ -139,28 +163,27 @@ const uploadOrUpdateMarksheet = async ({
             marksheet = await marksheetDal.updateMarksheetDal({
                 marksheetId,
                 serialNo,
+                semester: term.semester ?? null,
+                year: term.year ?? null,
                 subjects: processedSubjects,
                 role
             });
             
             // Use semester from marksheet if not provided in request
-            const semesterToUse = semester || marksheet.semester;
+            const semesterToUse = term.semester || marksheet.semester || undefined;
+            const yearToUse = term.year || (marksheet as any).year || undefined;
             
-            // Ensure semester is in the student's array
-            if (marksheet && semesterToUse) {
+            // Ensure term is in the student's array
+            if (marksheet && (semesterToUse || yearToUse)) {
                 await studentDal.updateStudentSemesterMarksheetArrayDal({
                     studentId,
-                    semester: semesterToUse
+                    semester: semesterToUse,
+                    year: yearToUse
                 });
             }
         } else {
-            // Semester is required when creating a new marksheet
-            if (!semester) {
-                throw new Error('Semester is required when creating a new marksheet');
-            }
-
             // Check if marksheet already exists for this student + semester combination
-            const existingMarksheet = await marksheetDal.findMarksheetByStudentIdAndSemesterDal(studentId, semester);
+            const existingMarksheet = await marksheetDal.findMarksheetByStudentIdAndSemesterDal(studentId, term.semester, term.year);
             
             if (existingMarksheet) {
                 // Update existing marksheet
@@ -170,15 +193,18 @@ const uploadOrUpdateMarksheet = async ({
                 marksheet = await marksheetDal.updateMarksheetDal({
                     marksheetId: marksheetIdString,
                     serialNo,
+                    semester: term.semester ?? null,
+                    year: term.year ?? null,
                     subjects: processedSubjects,
                     role
                 });
                 
-                // Ensure semester is in the student's array (should already be there, but ensure it)
-                if(marksheet && semester) {
+                // Ensure term is in the student's array (should already be there, but ensure it)
+                if(marksheet && (term.semester || term.year)) {
                     await studentDal.updateStudentSemesterMarksheetArrayDal({
                         studentId,
-                        semester
+                        semester: term.semester,
+                        year: term.year
                     });
                 }
             } else {
@@ -190,18 +216,20 @@ const uploadOrUpdateMarksheet = async ({
                 // Create new marksheet
                 marksheet = await marksheetDal.uploadMarksheetDal({
                     studentId,
-                    semester,
+                    semester: term.semester,
+                    year: term.year,
                     courseId,
                     serialNo,
                     subjects: processedSubjects,
                     role
                 });
                 
-                // Update student status and semester array after creating marksheet
-                if(marksheet && semester) {
+                // Update student status and term array after creating marksheet
+                if(marksheet && (term.semester || term.year)) {
                     await studentDal.updateStudentSemesterMarksheetArrayDal({
                         studentId,
-                        semester
+                        semester: term.semester,
+                        year: term.year
                     });
                 }
             }
@@ -228,15 +256,15 @@ const getMarksheetByStudentIdService = async (studentId: string): Promise<any> =
     }
 };
 
-const showMarksheetService = async (studentId: string, semester?: string): Promise<any> => {
+const showMarksheetService = async (studentId: string, semester?: string, year?: string | number): Promise<any> => {
     try {
         if (!studentId) {
             throw new Error('Student ID is required');
         }
 
-        // If semester is provided, use the new method to get marksheet by studentId and semester
-        if (semester) {
-            const marksheet = await marksheetDal.getMarksheetByStudentIdAndSemesterDal(studentId, semester);
+        // If term is provided, use the specific lookup
+        if (semester || year) {
+            const marksheet = await marksheetDal.getMarksheetByStudentIdAndSemesterDal(studentId, semester, year ? String(year) : undefined);
             return marksheet;
         }
 
@@ -249,17 +277,15 @@ const showMarksheetService = async (studentId: string, semester?: string): Promi
     }
 };
 
-const getMarksheetByStudentIdAndSemesterService = async (studentId: string, semester: string): Promise<any> => {
+const getMarksheetByStudentIdAndSemesterService = async (studentId: string, semester?: string, year?: string | number): Promise<any> => {
     try {
         if (!studentId) {
             throw new Error('Student ID is required');
         }
 
-        if (!semester) {
-            throw new Error('Semester is required');
-        }
+        const term = normalizeTermInput(semester, year);
 
-        const marksheet = await marksheetDal.getMarksheetByStudentIdAndSemesterDal(studentId, semester);
+        const marksheet = await marksheetDal.getMarksheetByStudentIdAndSemesterDal(studentId, term.semester, term.year);
         return marksheet;
     } catch (error) {
         console.log('Error in getMarksheetByStudentIdAndSemesterService:', error);
@@ -271,13 +297,15 @@ const updateMarksheetService = async ({
     marksheetId,
     studentId,
     semester,
+    year,
     serialNo,
     subjects,
     role
 }: {
     marksheetId: string;
     studentId: string;
-    semester: string;
+    semester?: string;
+    year?: string | number;
     serialNo?: string;
     subjects: SubjectMarks[];
     role?: string;
@@ -292,18 +320,16 @@ const updateMarksheetService = async ({
             throw new Error('Student ID is required');
         }
 
-        if (!semester) {
-            throw new Error('Semester is required');
-        }
+        const term = normalizeTermInput(semester, year);
 
         // Validate and process subjects
         const processedSubjects = validateAndProcessSubjects(subjects);
 
         // Find the marksheet to validate it exists and belongs to the student
-        const existingMarksheet = await marksheetDal.findMarksheetByStudentIdAndSemesterDal(studentId, semester);
+        const existingMarksheet = await marksheetDal.findMarksheetByStudentIdAndSemesterDal(studentId, term.semester, term.year);
         
         if (!existingMarksheet) {
-            throw new Error('Marksheet not found for this student and semester');
+            throw new Error('Marksheet not found for this student and semester/year');
         }
 
         // Validate that the marksheetId matches the found marksheet
@@ -318,15 +344,18 @@ const updateMarksheetService = async ({
         const updatedMarksheet = await marksheetDal.updateMarksheetDal({
             marksheetId,
             serialNo,
+            semester: term.semester ?? null,
+            year: term.year ?? null,
             subjects: processedSubjects,
             role
         });
 
-        // Ensure semester is in the student's array
-        if (updatedMarksheet) {
+        // Ensure term is in the student's array
+        if (updatedMarksheet && (term.semester || term.year)) {
             await studentDal.updateStudentSemesterMarksheetArrayDal({
                 studentId,
-                semester
+                semester: term.semester,
+                year: term.year
             });
         }
 

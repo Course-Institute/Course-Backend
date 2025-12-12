@@ -5,6 +5,7 @@ export const validateCreateMarksheet = (req: Request, res: Response, next: NextF
     const {
         studentId,
         semester,
+        year,
         courseId,
         subjects,
         marksheetId
@@ -17,9 +18,26 @@ export const validateCreateMarksheet = (req: Request, res: Response, next: NextF
         errors.push('Student ID is required and must be a string');
     }
 
-    // Validate semester (required when creating new marksheet, optional when updating)
-    if (!marksheetId && (!semester || typeof semester !== 'string')) {
-        errors.push('Semester is required and must be a string when creating a new marksheet');
+    const hasSemester = semester !== undefined && semester !== null && semester !== '';
+    const hasYear = year !== undefined && year !== null && year !== '';
+
+    // Validate term presence and exclusivity
+    if (!hasSemester && !hasYear) {
+        errors.push('Semester or year is required');
+    }
+
+    if (hasSemester && hasYear) {
+        errors.push('Provide either semester or year, not both');
+    }
+
+    // Validate semester (when provided)
+    if (hasSemester && typeof semester !== 'string') {
+        errors.push('Semester must be a string');
+    }
+
+    // Validate year (when provided)
+    if (hasYear && typeof year !== 'string' && typeof year !== 'number') {
+        errors.push('Year must be a string or number');
     }
 
     // Validate courseId (required when creating new marksheet, optional when updating)

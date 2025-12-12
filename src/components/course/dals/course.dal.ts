@@ -115,7 +115,8 @@ const deleteCourseDal = async (courseId: string): Promise<boolean> => {
 
 const getSubjectsByCourseAndSemesterDal = async (
   courseId: string,
-  semester: number
+  semester?: number,
+  year?: number
 ): Promise<ISubject[]> => {
   try {
     // Validate courseId is a valid ObjectId
@@ -129,12 +130,22 @@ const getSubjectsByCourseAndSemesterDal = async (
       throw new Error('Course not found');
     }
 
-    // Get subjects for the course and semester
-    const subjects = await SubjectModel.find({
+    // Build query filter based on semester or year
+    const filter: any = {
       courseId: new mongoose.Types.ObjectId(courseId),
-      semester: semester,
-    })
-      .select('_id name')
+    };
+
+    if (semester !== undefined && semester !== null) {
+      filter.semester = semester;
+      filter.year = null; // Ensure year is null for semester-based subjects
+    } else if (year !== undefined && year !== null) {
+      filter.year = year;
+      filter.semester = null; // Ensure semester is null for year-based subjects
+    }
+
+    // Get subjects for the course and term
+    const subjects = await SubjectModel.find(filter)
+      .select('_id name semester year')
       .sort({ name: 1 })
       .lean();
 
@@ -148,6 +159,7 @@ const getSubjectsByCourseAndSemesterDal = async (
 const getAllSubjectsDal = async (filters?: {
   courseId?: string;
   semester?: number;
+  year?: number;
 }): Promise<ISubject[]> => {
   try {
     const query: any = {};
@@ -159,13 +171,17 @@ const getAllSubjectsDal = async (filters?: {
       query.courseId = new mongoose.Types.ObjectId(filters.courseId);
     }
 
-    if (filters?.semester !== undefined) {
+    if (filters?.semester !== undefined && filters?.semester !== null) {
       query.semester = filters.semester;
+    }
+
+    if (filters?.year !== undefined && filters?.year !== null) {
+      query.year = filters.year;
     }
 
     const subjects = await SubjectModel.find(query)
       .populate('courseId', 'name')
-      .sort({ 'courseId.name': 1, semester: 1, name: 1 })
+      .sort({ 'courseId.name': 1, semester: 1, year: 1, name: 1 })
       .lean();
 
     return subjects as ISubject[];
@@ -191,7 +207,8 @@ const getSubjectByIdDal = async (subjectId: string): Promise<ISubject | null> =>
 const createSubjectDal = async (subjectData: {
   name: string;
   courseId: string;
-  semester: number;
+  semester?: number | null;
+  year?: number | null;
   code?: string;
   credits?: number;
 }): Promise<ISubject> => {
@@ -200,10 +217,23 @@ const createSubjectDal = async (subjectData: {
       throw new Error('Invalid course ID format');
     }
 
-    const subject = await SubjectModel.create({
-      ...subjectData,
+    // Ensure mutual exclusivity at database level
+    const createData: any = {
+      name: subjectData.name,
       courseId: new mongoose.Types.ObjectId(subjectData.courseId),
-    });
+      code: subjectData.code,
+      credits: subjectData.credits,
+    };
+
+    if (subjectData.semester !== undefined && subjectData.semester !== null) {
+      createData.semester = subjectData.semester;
+      createData.year = null;
+    } else if (subjectData.year !== undefined && subjectData.year !== null) {
+      createData.year = subjectData.year;
+      createData.semester = null;
+    }
+
+    const subject = await SubjectModel.create(createData);
     return subject;
   } catch (error) {
     console.log('Error in createSubjectDal:', error);
@@ -216,7 +246,8 @@ const updateSubjectDal = async (
   updateData: {
     name?: string;
     courseId?: string;
-    semester?: number;
+    semester?: number | null;
+    year?: number | null;
     code?: string;
     credits?: number;
   }
@@ -232,6 +263,20 @@ const updateSubjectDal = async (
         throw new Error('Invalid course ID format');
       }
       updatePayload.courseId = new mongoose.Types.ObjectId(updateData.courseId);
+    }
+
+    // Ensure mutual exclusivity when updating term fields
+    if (updateData.semester !== undefined) {
+      updatePayload.semester = updateData.semester;
+      if (updateData.semester !== null) {
+        updatePayload.year = null;
+      }
+    }
+    if (updateData.year !== undefined) {
+      updatePayload.year = updateData.year;
+      if (updateData.year !== null) {
+        updatePayload.semester = null;
+      }
     }
 
     const subject = await SubjectModel.findByIdAndUpdate(
