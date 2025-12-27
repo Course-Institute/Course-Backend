@@ -208,7 +208,7 @@ const findStudentByRegistrationNo = async (registrationNo: string): Promise<any>
 const getStudentProfileByRegistrationNo = async (registrationNo: string): Promise<any> => {
     try {
         // Check for the specific student
-        const student = await StudentModel.findOne({ registrationNo: registrationNo }).populate('course').lean();
+        const student = await StudentModel.findOne({ registrationNo: registrationNo }).populate('course').populate('centerId').lean();
         return student;
     } catch (error) {
         console.log('Error in getStudentProfileByRegistrationNo:', error);
@@ -516,6 +516,9 @@ const getAllStudents = async ({
                     whichYearMarksheetIsGenerated: 1,
                     approvedSemesters: 1,
                     approvedYears: 1,
+                    isAdmitCardApproved: 1,
+                    isCertificateApproved: 1,
+                    isMigrationApproved: 1,
                     faculty: 1
                 }
             },
@@ -553,6 +556,111 @@ const getStudentByRegistrationNo = async (registrationNo: string) => {
     } catch (error) {
         console.log('Error in getStudentByRegistrationNo DAL:', error);
         throw error;
+    }
+};
+
+const approveAdmitCardDal = async ({
+    registrationNo
+}: {
+    registrationNo: string
+}): Promise<{ status: boolean, message: string, data: IStudent | null }> => {
+    try {
+        const updatedStudent = await StudentModel.findOneAndUpdate(
+            { registrationNo },
+            { $set: { isAdmitCardApproved: true } },
+            { new: true, runValidators: true }
+        );
+        
+        if (!updatedStudent) {
+            return {
+                status: false,
+                message: "Student not found",
+                data: null
+            };
+        }
+        
+        return {
+            status: true,
+            message: "Admit card approved successfully",
+            data: updatedStudent as IStudent
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            status: false,
+            message: `${error} | failed to approve admit card | DAL `,
+            data: null
+        };
+    }
+};
+
+const approveCertificateDal = async ({
+    registrationNo
+}: {
+    registrationNo: string
+}): Promise<{ status: boolean, message: string, data: IStudent | null }> => {
+    try {
+        const updatedStudent = await StudentModel.findOneAndUpdate(
+            { registrationNo },
+            { $set: { isCertificateApproved: true } },
+            { new: true, runValidators: true }
+        );
+        
+        if (!updatedStudent) {
+            return {
+                status: false,
+                message: "Student not found",
+                data: null
+            };
+        }
+        
+        return {
+            status: true,
+            message: "Certificate approved successfully",
+            data: updatedStudent as IStudent
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            status: false,
+            message: `${error} | failed to approve certificate | DAL `,
+            data: null
+        };
+    }
+};
+
+const approveMigrationDal = async ({
+    registrationNo
+}: {
+    registrationNo: string
+}): Promise<{ status: boolean, message: string, data: IStudent | null }> => {
+    try {
+        const updatedStudent = await StudentModel.findOneAndUpdate(
+            { registrationNo },
+            { $set: { isMigrationApproved: true } },
+            { new: true, runValidators: true }
+        );
+        
+        if (!updatedStudent) {
+            return {
+                status: false,
+                message: "Student not found",
+                data: null
+            };
+        }
+        
+        return {
+            status: true,
+            message: "Migration certificate approved successfully",
+            data: updatedStudent as IStudent
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            status: false,
+            message: `${error} | failed to approve migration certificate | DAL `,
+            data: null
+        };
     }
 };
 
@@ -643,7 +751,7 @@ const approveStudentMarksheetDal = async ({
 
 const findStudentById = async (studentId: string): Promise<any> => {
     try {
-        const student = await StudentModel.findById(studentId).lean();
+        const student = await StudentModel.findById(studentId).populate('course').populate('centerId').lean();
         return student;
     } catch (error) {
         console.log('Error in findStudentById DAL:', error);
@@ -724,6 +832,9 @@ export default {
     getStudentByRegistrationNo,
     approveStudentDal,
     approveStudentMarksheetDal,
+    approveAdmitCardDal,
+    approveCertificateDal,
+    approveMigrationDal,
     findStudentById,
     updateMarksheetGenerationStatusDal,
     updateStudentSemesterMarksheetArrayDal

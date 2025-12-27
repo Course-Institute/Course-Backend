@@ -25,6 +25,9 @@ router.get('/centerdynamics', adminController.getCenterDynamicsController);
 router.get('/students/:registrationNo', adminController.getStudentDetailsController);
 router.post('/approve-student', adminController.approveStudentController);
 router.post('/approve-marksheet', adminController.approveStudentMarksheetController);
+router.post('/approve-admit-card', adminController.approveAdmitCardController);
+router.post('/approve-certificate', adminController.approveCertificateController);
+router.post('/approve-migration', adminController.approveMigrationController);
 
 // Center management routes (admin only)
 router.post('/register-center', uploadCenterFiles.fields([

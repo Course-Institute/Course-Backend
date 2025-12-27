@@ -46,6 +46,9 @@ interface IStudent extends Document {
     whichYearMarksheetIsGenerated?: string[];
     approvedSemesters?: string[];
     approvedYears?: string[];
+    isAdmitCardApproved: Boolean;
+    isCertificateApproved: Boolean;
+    isMigrationApproved: Boolean;
     centerId?: Types.ObjectId | null;
 }
 
@@ -92,6 +95,9 @@ const studentSchema = new Schema<IStudent>({
     whichYearMarksheetIsGenerated: { type: [String], required: false, default: [] },
     approvedSemesters: { type: [String], required: false, default: [] },
     approvedYears: { type: [String], required: false, default: [] },
+    isAdmitCardApproved: { type: Boolean, required: false, default: false },
+    isCertificateApproved: { type: Boolean, required: false, default: false },
+    isMigrationApproved: { type: Boolean, required: false, default: false },
     centerId: { type: mongoose.Schema.Types.ObjectId, ref: 'centers', required: false }
 },
     {

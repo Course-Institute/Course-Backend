@@ -372,6 +372,132 @@ const approveStudentMarksheetController = async (req: Request, res: Response): P
     }
 }
 
+const approveAdmitCardController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { registrationNo } = req.body;
+
+        if (!registrationNo) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Registration number is required',
+            });
+        }
+
+        const result = await adminService.approveAdmitCardService({ registrationNo });
+
+        if (!result.status || !result.data) {
+            return sendResponse({
+                res,
+                statusCode: 404,
+                status: false,
+                message: result.message || 'Student not found',
+            });
+        }
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: result.message || 'Admit card approved successfully',
+            data: result.data,
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: error.message || 'Failed to approve admit card',
+            error: error.message
+        });
+    }
+}
+
+const approveCertificateController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { registrationNo } = req.body;
+
+        if (!registrationNo) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Registration number is required',
+            });
+        }
+
+        const result = await adminService.approveCertificateService({ registrationNo });
+
+        if (!result.status || !result.data) {
+            return sendResponse({
+                res,
+                statusCode: 404,
+                status: false,
+                message: result.message || 'Student not found',
+            });
+        }
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: result.message || 'Certificate approved successfully',
+            data: result.data,
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: error.message || 'Failed to approve certificate',
+            error: error.message
+        });
+    }
+}
+
+const approveMigrationController = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const { registrationNo } = req.body;
+
+        if (!registrationNo) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Registration number is required',
+            });
+        }
+
+        const result = await adminService.approveMigrationService({ registrationNo });
+
+        if (!result.status || !result.data) {
+            return sendResponse({
+                res,
+                statusCode: 404,
+                status: false,
+                message: result.message || 'Student not found',
+            });
+        }
+
+        return sendResponse({
+            res,
+            statusCode: 200,
+            status: true,
+            message: result.message || 'Migration certificate approved successfully',
+            data: result.data,
+        });
+    } catch (error: any) {
+        return sendResponse({
+            res,
+            statusCode: 400,
+            status: false,
+            message: error.message || 'Failed to approve migration certificate',
+            error: error.message
+        });
+    }
+}
+
 const listStudentsForAdminOrCenterController = async (req: Request, res: Response): Promise<Response> => {
     try {
         const { 
@@ -506,6 +632,9 @@ export default {
     registerCenterController,
     getAllCentersController,
     approveStudentMarksheetController,
+    approveAdmitCardController,
+    approveCertificateController,
+    approveMigrationController,
     listStudentsForAdminOrCenterController,
     getCenterByIdController,
     // approveCenterController,

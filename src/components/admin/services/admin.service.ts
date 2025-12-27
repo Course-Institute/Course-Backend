@@ -289,6 +289,72 @@ const approveStudentMarksheetService = async ({
     }
 };
 
+const approveAdmitCardService = async ({
+    registrationNo
+}: {
+    registrationNo: string;
+}): Promise<{
+    status: boolean,
+    message: string,
+    data: IStudent | null
+}> => {
+    try {
+        const result = await studentDal.approveAdmitCardDal({ registrationNo });
+        return result;
+    } catch (error: any) {
+        console.error(error, "Failed to approve admit card | service");
+        return {
+            status: false,
+            message: error?.message || `Failed to approve admit card | service`,
+            data: null
+        };
+    }
+};
+
+const approveCertificateService = async ({
+    registrationNo
+}: {
+    registrationNo: string;
+}): Promise<{
+    status: boolean,
+    message: string,
+    data: IStudent | null
+}> => {
+    try {
+        const result = await studentDal.approveCertificateDal({ registrationNo });
+        return result;
+    } catch (error: any) {
+        console.error(error, "Failed to approve certificate | service");
+        return {
+            status: false,
+            message: error?.message || `Failed to approve certificate | service`,
+            data: null
+        };
+    }
+};
+
+const approveMigrationService = async ({
+    registrationNo
+}: {
+    registrationNo: string;
+}): Promise<{
+    status: boolean,
+    message: string,
+    data: IStudent | null
+}> => {
+    try {
+        const result = await studentDal.approveMigrationDal({ registrationNo });
+        return result;
+    } catch (error: any) {
+        console.error(error, "Failed to approve migration certificate | service");
+        return {
+            status: false,
+            message: error?.message || `Failed to approve migration certificate | service`,
+            data: null
+        };
+    }
+};
+
 export default {
     listAllStudents,
     getStudentDetails,
@@ -299,4 +365,7 @@ export default {
     registerCenterService,
     getAllCentersService,
     approveStudentMarksheetService,
+    approveAdmitCardService,
+    approveCertificateService,
+    approveMigrationService,
 };
