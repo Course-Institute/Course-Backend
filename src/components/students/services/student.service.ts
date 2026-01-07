@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { IStudent } from "../model/student.model.js";
 import mongoose from "mongoose";
 import { StudentModel } from "../model/student.model.js";
+import courseDal from "../../course/dals/course.dal.js";
 
 const studentListAutoComplete = async ({ query, centerId }: { query: string, centerId: string }) => {
     try {
@@ -232,10 +233,61 @@ const updateStudent = async (studentId: string, updates: Record<string, any>) =>
     }
 };
 
-const getStudentById = async (studentId: string) => {
+const getStudentById = async (studentId: string, year?: string, semester?: string) => {
     try {
         const student = await studentDal.findStudentById(studentId);
-        return student;
+        
+        if (!student) {
+            return null;
+        }
+
+        // Get course ID
+        const courseId = student.course?._id?.toString() || student.course?.toString();
+        
+        // Fetch subjects for the student's course
+        let subjects: any[] = [];
+        if (courseId) {
+            try {
+                // Build filter for subjects
+                const subjectFilters: { courseId?: string; year?: number; semester?: number } = {
+                    courseId: courseId
+                };
+
+                // Apply year or semester filter (year takes precedence if both provided)
+                if (year) {
+                    subjectFilters.year = parseInt(year);
+                } else if (semester) {
+                    subjectFilters.semester = parseInt(semester);
+                }
+
+                // Fetch subjects
+                const fetchedSubjects = await courseDal.getAllSubjectsDal(subjectFilters);
+                
+                // Format subjects
+                subjects = fetchedSubjects.map((subject: any) => ({
+                    _id: subject._id?.toString(),
+                    name: subject.name,
+                    code: subject.code || null,
+                    credits: subject.credits || null,
+                    semester: subject.semester !== null && subject.semester !== undefined ? subject.semester : null,
+                    year: subject.year !== null && subject.year !== undefined ? subject.year : null,
+                    courseId: subject.courseId?._id?.toString() || subject.courseId?.toString() || null,
+                    courseName: subject.courseId?.name || null,
+                    createdAt: subject.createdAt ? new Date(subject.createdAt).toISOString() : null,
+                    updatedAt: subject.updatedAt ? new Date(subject.updatedAt).toISOString() : null,
+                }));
+            } catch (error) {
+                console.log('Error fetching subjects:', error);
+                // Continue with empty subjects array if fetching fails
+                subjects = [];
+            }
+        }
+
+        // Add subjects to student object
+        return {
+            ...student,
+            subjects: subjects
+        };
     } catch (error) {
         throw error;
     }

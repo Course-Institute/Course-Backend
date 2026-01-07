@@ -47,6 +47,10 @@ interface IStudent extends Document {
     approvedSemesters?: string[];
     approvedYears?: string[];
     isAdmitCardApproved: Boolean;
+    whichYearAdmitCardIsGenerated?: string[];
+    whichSemesterAdmitCardIsGenerated?: string[];
+    approvedAdmitCardYears?: string[];
+    approvedAdmitCardSemesters?: string[];
     isCertificateApproved: Boolean;
     isMigrationApproved: Boolean;
     centerId?: Types.ObjectId | null;
@@ -96,6 +100,10 @@ const studentSchema = new Schema<IStudent>({
     approvedSemesters: { type: [String], required: false, default: [] },
     approvedYears: { type: [String], required: false, default: [] },
     isAdmitCardApproved: { type: Boolean, required: false, default: false },
+    whichYearAdmitCardIsGenerated: { type: [String], required: false, default: [] },
+    whichSemesterAdmitCardIsGenerated: { type: [String], required: false, default: [] },
+    approvedAdmitCardYears: { type: [String], required: false, default: [] },
+    approvedAdmitCardSemesters: { type: [String], required: false, default: [] },
     isCertificateApproved: { type: Boolean, required: false, default: false },
     isMigrationApproved: { type: Boolean, required: false, default: false },
     centerId: { type: mongoose.Schema.Types.ObjectId, ref: 'centers', required: false }
@@ -103,6 +111,12 @@ const studentSchema = new Schema<IStudent>({
     {
         timestamps: true
     });
+
+// Add indexes for efficient queries
+studentSchema.index({ registrationNo: 1 });
+studentSchema.index({ isAdmitCardApproved: 1 });
+studentSchema.index({ approvedAdmitCardYears: 1 });
+studentSchema.index({ approvedAdmitCardSemesters: 1 });
 
 const StudentModel: Model<IStudent> =
     mongoose.model<IStudent>(

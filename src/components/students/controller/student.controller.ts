@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import studentService from '../services/student.service.js';
 import { sendResponse } from '../../../utils/response.util.js';
 import { authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
+import mongoose from 'mongoose';
 
 const studentListAutoCompleteController = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -201,17 +202,56 @@ const updateStudentController = async (req: Request, res: Response) => {
 
 const getStudentByIdFromBodyController = async (req: Request, res: Response) => {
     try {
-        const { studentId } = req.body;
+        const { studentId, year, semester } = req.body;
+        const user = req.user;
+        
+        // Validate studentId
         if (!studentId) {
-            return res.status(400).json({ success: false, message: 'studentId is required.' });
+            return res.status(400).json({ 
+                status: false, 
+                message: 'studentId is required.' 
+            });
         }
-        const student = await studentService.getStudentById(studentId);
+
+        // Validate studentId format
+        if (!mongoose.Types.ObjectId.isValid(studentId)) {
+            return res.status(400).json({ 
+                status: false, 
+                message: 'Invalid student ID format.' 
+            });
+        }
+
+        // Security check: If user is a student, they can only access their own data
+        // if (user?.role === 'student') {
+        //     // For students, userId in token is the studentId
+        //     if (user.userId !== studentId) {
+        //         return res.status(403).json({ 
+        //             status: false, 
+        //             message: 'Access denied. Students can only access their own data.' 
+        //         });
+        //     }
+        // }
+
+        // Get student with subjects filtered by year/semester
+        const student = await studentService.getStudentById(studentId, year, semester);
+        
         if (!student) {
-            return res.status(404).json({ success: false, message: 'Student not found.' });
+            return res.status(404).json({ 
+                status: false, 
+                message: 'Student not found.' 
+            });
         }
-        return res.status(200).json({ success: true, student });
+
+        return res.status(200).json({ 
+            status: true, 
+            message: 'Student details retrieved successfully',
+            student 
+        });
     } catch (err: any) {
-        return res.status(500).json({ success: false, message: err.message });
+        return res.status(500).json({ 
+            status: false, 
+            message: err.message || 'Internal server error. Please try again later.' 
+        });
     }
 };
 

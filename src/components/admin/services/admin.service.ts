@@ -6,6 +6,7 @@ import centerDal from '../../centers/dals/center.dal.js';
 import studentDal from '../../students/dals/student.dal.js';
 import marksheetService from '../../marksheets/services/marksheet.service.js';
 import { SubjectMarks } from '../../marksheets/models/marksheet.model.js';
+import courseDal from '../../course/dals/course.dal.js';
 
 const listAllStudents = async ({
     page = 1,
@@ -52,22 +53,83 @@ const listAllStudents = async ({
             programCategory,
             centerId
         });
-        const transformedResult = result.students.map((student: any) => ({
-            ...student,
-            stream : student.stream ? student.stream : 'N/A',
-            centerName: student.centerId?.centerDetails?.centerName,
-            centerCode: student.centerId?.centerDetails?.centerCode,
-            centerId: student.centerId?._id.toString(),
-            courseId: student.course?._id?.toString?.() || student.course?.toString?.(),
-            courseName: student.course?.name,
-            courseType: student.course?.coursesType || student.courseType,
-            course: student.course?.name || student.course, // backward compatibility for existing consumers
-            studentId: student._id?.toString(),
-            whichSemesterMarksheetIsGenerated: student.whichSemesterMarksheetIsGenerated || [],
-            whichYearMarksheetIsGenerated: student.whichYearMarksheetIsGenerated || [],
-            approvedSemesters: student.approvedSemesters || [],
-            approvedYears: student.approvedYears || [],
-        }));
+        // Get unique course IDs from students
+        const courseIds = [...new Set(
+            result.students
+                .map((student: any) => {
+                    const courseId = student.course?._id?.toString?.() || student.course?.toString?.();
+                    return courseId;
+                })
+                .filter(Boolean)
+        )];
+
+        // Fetch all subjects for all courses in one query
+        const allSubjectsMap = new Map<string, any[]>();
+        
+        if (courseIds.length > 0) {
+            try {
+                // Fetch subjects for each course
+                const subjectsPromises = courseIds.map(async (courseId) => {
+                    try {
+                        const subjects = await courseDal.getAllSubjectsDal({ courseId });
+                        return { courseId, subjects };
+                    } catch (error) {
+                        console.log(`Error fetching subjects for course ${courseId}:`, error);
+                        return { courseId, subjects: [] };
+                    }
+                });
+
+                const subjectsResults = await Promise.all(subjectsPromises);
+                
+                // Build map of courseId -> subjects
+                subjectsResults.forEach(({ courseId, subjects }) => {
+                    if (courseId && subjects.length > 0) {
+                        allSubjectsMap.set(courseId, subjects.map((subject: any) => ({
+                            _id: subject._id?.toString(),
+                            name: subject.name,
+                            code: subject.code || null,
+                            credits: subject.credits || null,
+                            semester: subject.semester || null,
+                            year: subject.year || null,
+                            courseId: subject.courseId?._id?.toString() || subject.courseId?.toString() || null,
+                            courseName: subject.courseId?.name || null,
+                            createdAt: subject.createdAt ? new Date(subject.createdAt).toISOString() : null,
+                            updatedAt: subject.updatedAt ? new Date(subject.updatedAt).toISOString() : null,
+                        })));
+                    }
+                });
+            } catch (error) {
+                console.log('Error fetching subjects:', error);
+                // Continue even if subject fetching fails
+            }
+        }
+
+        const transformedResult = result.students.map((student: any) => {
+            const courseId = student.course?._id?.toString?.() || student.course?.toString?.();
+            const subjects = courseId ? (allSubjectsMap.get(courseId) || []) : [];
+
+            return {
+                ...student,
+                stream : student.stream ? student.stream : 'N/A',
+                centerName: student.centerId?.centerDetails?.centerName,
+                centerCode: student.centerId?.centerDetails?.centerCode,
+                centerId: student.centerId?._id.toString(),
+                courseId: courseId,
+                courseName: student.course?.name,
+                courseType: student.course?.coursesType || student.courseType,
+                course: student.course?.name || student.course, // backward compatibility for existing consumers
+                studentId: student._id?.toString(),
+                whichSemesterMarksheetIsGenerated: student.whichSemesterMarksheetIsGenerated || [],
+                whichYearMarksheetIsGenerated: student.whichYearMarksheetIsGenerated || [],
+                approvedSemesters: student.approvedSemesters || [],
+                approvedYears: student.approvedYears || [],
+                whichYearAdmitCardIsGenerated: student.whichYearAdmitCardIsGenerated || [],
+                whichSemesterAdmitCardIsGenerated: student.whichSemesterAdmitCardIsGenerated || [],
+                approvedAdmitCardYears: student.approvedAdmitCardYears || [],
+                approvedAdmitCardSemesters: student.approvedAdmitCardSemesters || [],
+                subjects: subjects, // Add subjects array
+            };
+        });
 
         return {
             students: transformedResult,
@@ -290,16 +352,24 @@ const approveStudentMarksheetService = async ({
 };
 
 const approveAdmitCardService = async ({
-    registrationNo
+    registrationNo,
+    year,
+    semester
 }: {
     registrationNo: string;
+    year?: string;
+    semester?: string;
 }): Promise<{
     status: boolean,
     message: string,
     data: IStudent | null
 }> => {
     try {
-        const result = await studentDal.approveAdmitCardDal({ registrationNo });
+        const result = await studentDal.approveAdmitCardDal({ 
+            registrationNo,
+            year,
+            semester
+        });
         return result;
     } catch (error: any) {
         console.error(error, "Failed to approve admit card | service");

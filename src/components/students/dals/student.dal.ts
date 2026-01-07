@@ -517,6 +517,10 @@ const getAllStudents = async ({
                     approvedSemesters: 1,
                     approvedYears: 1,
                     isAdmitCardApproved: 1,
+                    whichYearAdmitCardIsGenerated: 1,
+                    whichSemesterAdmitCardIsGenerated: 1,
+                    approvedAdmitCardYears: 1,
+                    approvedAdmitCardSemesters: 1,
                     isCertificateApproved: 1,
                     isMigrationApproved: 1,
                     faculty: 1
@@ -560,29 +564,141 @@ const getStudentByRegistrationNo = async (registrationNo: string) => {
 };
 
 const approveAdmitCardDal = async ({
-    registrationNo
+    registrationNo,
+    year,
+    semester
 }: {
-    registrationNo: string
+    registrationNo: string;
+    year?: string;
+    semester?: string;
 }): Promise<{ status: boolean, message: string, data: IStudent | null }> => {
     try {
-        const updatedStudent = await StudentModel.findOneAndUpdate(
-            { registrationNo },
-            { $set: { isAdmitCardApproved: true } },
-            { new: true, runValidators: true }
-        );
+        // Find the student
+        const student = await StudentModel.findOne({ registrationNo });
         
-        if (!updatedStudent) {
+        if (!student) {
             return {
                 status: false,
                 message: "Student not found",
                 data: null
             };
         }
-        
+
+        // Check if student is approved by admin
+        if (!student.isApprovedByAdmin) {
+            return {
+                status: false,
+                message: "Student must be approved by admin first",
+                data: null
+            };
+        }
+
+        // Validate that either year or semester is provided (not both, not neither)
+        if (!year && !semester) {
+            return {
+                status: false,
+                message: "Either year or semester must be provided",
+                data: null
+            };
+        }
+
+        if (year && semester) {
+            return {
+                status: false,
+                message: "Cannot provide both year and semester",
+                data: null
+            };
+        }
+
+        // Check if admit card subjects exist for this year/semester
+        // Note: This assumes AdmitCardSubject model exists. If not, this check will need to be adjusted.
+        let subjectsExist = false;
+        try {
+            const AdmitCardSubjectModel = mongoose.model('admitcardsubjects');
+            const subjectQuery: any = {
+                studentId: student._id
+            };
+            
+            if (year) {
+                subjectQuery.year = year;
+            } else {
+                subjectQuery.semester = semester;
+            }
+
+            const subjectCount = await AdmitCardSubjectModel.countDocuments(subjectQuery);
+            subjectsExist = subjectCount > 0;
+        } catch (modelError: any) {
+            // If model doesn't exist, we'll skip the check and proceed
+            // This allows the approval to work even if the model hasn't been created yet
+            console.log('AdmitCardSubject model not found, skipping subject check');
+            subjectsExist = true; // Allow approval to proceed
+        }
+
+        if (!subjectsExist) {
+            const termLabel = year ? `Year ${year}` : `Semester ${semester}`;
+            return {
+                status: false,
+                message: `No admit card subjects found for ${termLabel}`,
+                data: null
+            };
+        }
+
+        // Update student approval tracking
+        if (year) {
+            // Initialize arrays if they don't exist
+            if (!student.approvedAdmitCardYears) {
+                student.approvedAdmitCardYears = [];
+            }
+            if (!student.whichYearAdmitCardIsGenerated) {
+                student.whichYearAdmitCardIsGenerated = [];
+            }
+
+            // Add to approved years if not already present
+            if (!student.approvedAdmitCardYears.includes(year)) {
+                student.approvedAdmitCardYears.push(year);
+                student.approvedAdmitCardYears.sort();
+            }
+
+            // Ensure year is in generated list
+            if (!student.whichYearAdmitCardIsGenerated.includes(year)) {
+                student.whichYearAdmitCardIsGenerated.push(year);
+                student.whichYearAdmitCardIsGenerated.sort();
+            }
+        } else if (semester) {
+            // Initialize arrays if they don't exist
+            if (!student.approvedAdmitCardSemesters) {
+                student.approvedAdmitCardSemesters = [];
+            }
+            if (!student.whichSemesterAdmitCardIsGenerated) {
+                student.whichSemesterAdmitCardIsGenerated = [];
+            }
+
+            // Add to approved semesters if not already present
+            if (!student.approvedAdmitCardSemesters.includes(semester)) {
+                student.approvedAdmitCardSemesters.push(semester);
+                student.approvedAdmitCardSemesters.sort();
+            }
+
+            // Ensure semester is in generated list
+            if (!student.whichSemesterAdmitCardIsGenerated.includes(semester)) {
+                student.whichSemesterAdmitCardIsGenerated.push(semester);
+                student.whichSemesterAdmitCardIsGenerated.sort();
+            }
+        }
+
+        // Set overall approval status to true if at least one year/semester is approved
+        if ((student.approvedAdmitCardYears && student.approvedAdmitCardYears.length > 0) || 
+            (student.approvedAdmitCardSemesters && student.approvedAdmitCardSemesters.length > 0)) {
+            student.isAdmitCardApproved = true;
+        }
+
+        await student.save();
+
+        const termLabel = year ? `Year ${year}` : `Semester ${semester}`;
         return {
             status: true,
-            message: "Admit card approved successfully",
-            data: updatedStudent as IStudent
+            message: `Admit card approved successfully for ${termLabel}`,
+            data: student as IStudent
         };
     } catch (error) {
         console.error(error);

@@ -137,6 +137,38 @@ export const authorizeAdminOrCenter = async (req: Request, res: Response, next: 
     }
 };
 
+export const authorizeAdminOrCenterOrStudent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.log('AdminOrCenterOrStudent middleware - req.user:', req.user);
+        console.log('AdminOrCenterOrStudent middleware - user role:', req.user?.role);
+        
+        if (!req.user) {
+            console.log('AdminOrCenterOrStudent middleware - No user found');
+            return res.status(401).json({
+                status: false,
+                message: 'Authentication required'
+            });
+        }
+
+        if (req.user.role !== 'admin' && req.user.role !== 'center' && req.user.role !== 'student') {
+            console.log('AdminOrCenterOrStudent middleware - User is not admin, center, or student. Role:', req.user.role);
+            return res.status(403).json({
+                status: false,
+                message: 'Admin, Center, or Student access required'
+            });
+        }
+
+        console.log('AdminOrCenterOrStudent middleware - User is authorized, proceeding...');
+        next();
+    } catch (error) {
+        console.log('AdminOrCenterOrStudent middleware - Error:', error);
+        return res.status(500).json({
+            status: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
 export const validatePassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const PASSWORD = process.env.PASSWORD;

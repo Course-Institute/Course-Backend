@@ -374,7 +374,7 @@ const approveStudentMarksheetController = async (req: Request, res: Response): P
 
 const approveAdmitCardController = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { registrationNo } = req.body;
+        const { registrationNo, year, semester } = req.body;
 
         if (!registrationNo) {
             return sendResponse({
@@ -385,23 +385,75 @@ const approveAdmitCardController = async (req: Request, res: Response): Promise<
             });
         }
 
-        const result = await adminService.approveAdmitCardService({ registrationNo });
+        // Validate that either year or semester is provided (not both, not neither)
+        if (!year && !semester) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Either year or semester must be provided',
+            });
+        }
+
+        if (year && semester) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Cannot provide both year and semester',
+            });
+        }
+
+        // Validate year format if provided
+        if (year && !/^[1-5]$/.test(year)) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Year must be between 1 and 5',
+            });
+        }
+
+        // Validate semester format if provided
+        if (semester && !/^[1-8]$/.test(semester)) {
+            return sendResponse({
+                res,
+                statusCode: 400,
+                status: false,
+                message: 'Semester must be between 1 and 8',
+            });
+        }
+
+        const result = await adminService.approveAdmitCardService({ 
+            registrationNo,
+            year,
+            semester
+        });
 
         if (!result.status || !result.data) {
             return sendResponse({
                 res,
-                statusCode: 404,
+                statusCode: result.message.includes('not found') ? 404 : 400,
                 status: false,
                 message: result.message || 'Student not found',
             });
         }
+
+        // Format response data
+        const studentData = result.data as any;
+        const responseData = {
+            studentId: studentData?._id?.toString() || '',
+            approvedYear: year || null,
+            approvedSemester: semester || null,
+            isAdmitCardApproved: studentData?.isAdmitCardApproved || false,
+        };
 
         return sendResponse({
             res,
             statusCode: 200,
             status: true,
             message: result.message || 'Admit card approved successfully',
-            data: result.data,
+            data: responseData,
         });
     } catch (error: any) {
         return sendResponse({

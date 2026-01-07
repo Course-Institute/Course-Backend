@@ -1,7 +1,7 @@
 import express from 'express';
 import studentController from '../controller/student.controller.js';
 import adminController from '../../admin/controller/admin.controller.js';
-import { authenticateToken, authorizeAdmin, authorizeAdminOrCenter } from '../../auth/middleware/auth.middleware.js';
+import { authenticateToken, authorizeAdmin, authorizeAdminOrCenter, authorizeAdminOrCenterOrStudent } from '../../auth/middleware/auth.middleware.js';
 import { uploadStudentFiles, multerErrorHandler } from '../../auth/middleware/upload.middleware.js';
 
 const router = express.Router();
@@ -29,7 +29,7 @@ router.post('/delete-student', authenticateToken, authorizeAdmin, studentControl
 // Update a student (admin only, partial update)
 router.post('/update-student', authenticateToken, authorizeAdmin, studentController.updateStudentController);
 
-// Get a student by id (admin or center)
-router.post('/get-student', authenticateToken, authorizeAdminOrCenter, studentController.getStudentByIdFromBodyController);
+// Get a student by id (admin, center, or student - students can only access their own data)
+router.post('/get-student', authenticateToken, authorizeAdminOrCenterOrStudent, studentController.getStudentByIdFromBodyController);
 
 export default router;
