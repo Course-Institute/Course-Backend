@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import studentService from '../services/student.service.js';
 import { sendResponse } from '../../../utils/response.util.js';
+import { sendStudentCredentialsEmail } from '../../../utils/mail.util.js';
 import { authorizeAdmin } from '../../auth/middleware/auth.middleware.js';
 import mongoose from 'mongoose';
 
@@ -98,6 +99,17 @@ const addStudentController = async (req: Request, res: Response): Promise<Respon
             gender,
             dateOfBirth, adharCardNo, category, areYouEmployed, employerName, designation, contactNumber, alternateNumber, emailAddress, currentAddress, permanentAddress, city, state, nationality, country, pincode, courseType, grade, course, stream, year, monthSession, hostelFacility, session, duration, courseFee, aadharFront, aadharBack, photo, signature, centerId: finalCenterId
         });
+
+        // Send login credentials email to student (non-blocking; do not fail request if mail fails)
+        if (emailAddress?.trim()) {
+            sendStudentCredentialsEmail({
+                to: emailAddress.trim(),
+                candidateName: candidateName || 'Student',
+                registrationNo: result.registrationNo || '',
+                dateOfBirth: dateOfBirth || '',
+            }).catch(() => {});
+        }
+
         return sendResponse({
             res,
             statusCode: 200,

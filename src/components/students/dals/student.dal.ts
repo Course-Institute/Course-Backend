@@ -19,8 +19,7 @@ const studentListAutoCompleteDal = async ({query, centerId}: {query: string, cen
                     { registrationNo: regex },
                     { emailAddress: regex },
                     { contactNumber: regex },
-                    { course: regex },
-                    { faculty: regex }
+                    { courseType: regex },
                 ],
             };
         }
